@@ -2,25 +2,72 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import AuthRedirect from '@/components/AuthRedirect';
-import { Database } from '@/types/supabase';
+import { supabase } from '@/lib/supabase';
 
 export default function SummaryPage() {
   const router = useRouter();
-  const supabase = createClientComponentClient<Database>();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      setLoading(false);
+      try {
+        console.log('ユーザー情報を取得中...');
+        
+        // まずセッションを確認
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('セッション取得エラー:', sessionError);
+          setLoading(false);
+          return;
+        }
+        
+        if (!session) {
+          console.log('セッションがありません');
+          setLoading(false);
+          return;
+        }
+        
+        console.log('セッション取得成功:', session);
+        
+        // URLのハッシュフラグメントからセッション情報を取得する処理
+        if (typeof window !== 'undefined') {
+          const hash = window.location.hash;
+          console.log('URLハッシュ:', hash);
+          
+          // ハッシュフラグメントにアクセストークンが含まれている場合は処理
+          if (hash && hash.includes('access_token')) {
+            console.log('アクセストークンを検出しました。セッションを設定します...');
+            
+            // URLからハッシュフラグメントを削除
+            window.history.replaceState(
+              {},
+              document.title,
+              window.location.pathname + window.location.search
+            );
+          }
+        }
+        
+        // ユーザー情報を取得
+        const { data: { user }, error } = await supabase.auth.getUser();
+        
+        if (error) {
+          console.error('ユーザー取得エラー:', error);
+        } else {
+          console.log('ユーザー取得成功:', user);
+          setUser(user);
+        }
+      } catch (err) {
+        console.error('認証エラー:', err);
+      } finally {
+        setLoading(false);
+      }
     };
 
     getUser();
-  }, [supabase.auth]);
+  }, []);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
