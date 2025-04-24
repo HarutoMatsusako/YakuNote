@@ -3,3 +3,4 @@ uvicorn
 cohere
 openai
 python-dotenv
+supabase
