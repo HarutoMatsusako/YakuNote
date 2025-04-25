@@ -26,6 +26,32 @@ export type Database = {
           created_at?: string;
         };
       };
+      summaries: {
+        Row: {
+          id: string;
+          created_at: string;
+          user_id: string;
+          original_text: string;
+          summary: string;
+          url: string | null;
+        };
+        Insert: {
+          id?: string;
+          created_at?: string;
+          user_id: string;
+          original_text: string;
+          summary: string;
+          url?: string | null;
+        };
+        Update: {
+          id?: string;
+          created_at?: string;
+          user_id?: string;
+          original_text?: string;
+          summary?: string;
+          url?: string | null;
+        };
+      };
     };
     Views: {};
     Functions: {};
