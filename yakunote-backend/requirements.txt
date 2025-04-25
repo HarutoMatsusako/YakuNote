@@ -4,3 +4,5 @@ cohere
 openai
 python-dotenv
 supabase
+trafilatura
+requests
