@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AuthRedirect from '@/components/AuthRedirect';
@@ -19,11 +19,17 @@ interface SummaryDetail {
 }
 
 export default function SummaryDetailPage({ params }: { params: { id: string } }) {
+  // Next.js 14以降ではparamsは直接アクセスできないため、別の方法で対応
+  // TypeScriptエラーを回避するために型アサーションを使用
+  const id = params.id;
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState<SummaryDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [language, setLanguage] = useState<"ja" | "en">("ja");
 
   useEffect(() => {
     const getUser = async () => {
@@ -76,15 +82,36 @@ export default function SummaryDetailPage({ params }: { params: { id: string } }
     getUser();
   }, []);
 
+  // 言語を切り替える関数
+  const toggleLanguage = () => {
+    const newLang = language === "ja" ? "en" : "ja";
+    console.log("言語を切り替えました:", newLang);
+    setLanguage(newLang);
+    // 言語切り替え後に要約を再取得する処理は useEffect で行う
+  };
+  
+  // 言語が変更されたときに要約を再取得
+  useEffect(() => {
+    console.log("言語変更を検知しました:", language);
+    if (id) {
+      fetchSummaryDetail();
+    }
+  }, [language]);
+
   // 要約の詳細を取得する関数
   const fetchSummaryDetail = async () => {
-    if (!params.id) return;
+    if (!id) return;
     
     try {
       setError(null);
       setLoading(true);
       
-      const response = await fetch(`${API_BASE_URL}/summary/${params.id}`);
+      // 言語に応じてエンドポイントを選択
+      const endpoint = language === "ja" ? `/summary/${id}` : `/summary_english/${id}`;
+      console.log("🌐 現在の言語:", language);
+      console.log("🔗 使用するエンドポイント:", endpoint);
+      
+      const response = await fetch(`${API_BASE_URL}${endpoint}`);
       
       if (!response.ok) {
         if (response.status === 404) {
@@ -105,10 +132,41 @@ export default function SummaryDetailPage({ params }: { params: { id: string } }
 
   // ページ読み込み時に要約の詳細を取得
   useEffect(() => {
-    if (params.id) {
+    if (id) {
       fetchSummaryDetail();
     }
-  }, [params.id]);
+  }, [id]);
+
+  // 要約を削除する関数
+  const deleteSummary = async () => {
+    if (!id || !confirm('この要約を削除してもよろしいですか？')) return;
+    
+    try {
+      setIsDeleting(true);
+      setError(null);
+      setSuccess(null);
+      
+      const response = await fetch(`${API_BASE_URL}/summary/${id}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || '要約の削除に失敗しました');
+      }
+      
+      setSuccess('要約が正常に削除されました');
+      
+      // 1秒後に要約一覧ページにリダイレクト
+      setTimeout(() => {
+        router.push('/summaries');
+      }, 1000);
+    } catch (err: any) {
+      setError(`エラー: ${err.message}`);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // 日付をフォーマットする関数
   const formatDate = (dateString: string) => {
@@ -133,6 +191,15 @@ export default function SummaryDetailPage({ params }: { params: { id: string } }
           <h1 className="text-3xl font-bold">要約の詳細</h1>
           
           <div className="flex space-x-4">
+            <button
+              onClick={toggleLanguage}
+              className="px-3 py-1 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              {language === "ja"
+                ? "🇺🇸 英語に切り替え"
+                : "🇯🇵 日本語に切り替え"}
+            </button>
+            
             <Link
               href="/summaries"
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -157,6 +224,10 @@ export default function SummaryDetailPage({ params }: { params: { id: string } }
         ) : error ? (
           <div className="bg-red-50 text-red-500 p-4 rounded-md mb-6">
             {error}
+          </div>
+        ) : success ? (
+          <div className="bg-green-50 text-green-500 p-4 rounded-md mb-6">
+            {success}
           </div>
         ) : summary ? (
           <div className="space-y-6">
@@ -206,6 +277,14 @@ export default function SummaryDetailPage({ params }: { params: { id: string } }
               >
                 要約一覧へ
               </Link>
+              
+              <button
+                onClick={deleteSummary}
+                disabled={isDeleting}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:bg-red-300"
+              >
+                {isDeleting ? '削除中...' : '削除'}
+              </button>
             </div>
           </div>
         ) : (

@@ -1,36 +1,37 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import AuthRedirect from '@/components/AuthRedirect';
-import { supabase } from '@/lib/supabase';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import AuthRedirect from "@/components/AuthRedirect";
+import { supabase } from "@/lib/supabase";
 
 // バックエンドAPIのベースURL
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001";
 
 export default function SummaryPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [url, setUrl] = useState('');
-  const [extractedText, setExtractedText] = useState('');
-  const [summary, setSummary] = useState('');
+  const [url, setUrl] = useState("");
+  const [extractedText, setExtractedText] = useState("");
+  const [summary, setSummary] = useState("");
   const [isExtracting, setIsExtracting] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [language, setLanguage] = useState<"ja" | "en">("ja");
 
   useEffect(() => {
     const getUser = async () => {
       try {
-        console.log('ユーザー情報を取得中...');
+        console.log("ユーザー情報を取得中...");
 
         // テスト用にダミーユーザーを設定
-        console.log('テスト用にダミーユーザーを設定します');
+        console.log("テスト用にダミーユーザーを設定します");
         setUser({
-          id: '123e4567-e89b-12d3-a456-426614174000', // 有効なUUID形式に変更
-          email: 'test@example.com'
+          id: "123e4567-e89b-12d3-a456-426614174000", // 有効なUUID形式に変更
+          email: "test@example.com",
         });
 
         // 本来のコード（テスト時はコメントアウト）
@@ -81,7 +82,7 @@ export default function SummaryPage() {
         }
         */
       } catch (err) {
-        console.error('認証エラー:', err);
+        console.error("認証エラー:", err);
       } finally {
         setLoading(false);
       }
@@ -92,13 +93,38 @@ export default function SummaryPage() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    router.push('/login');
+    router.push("/login");
   };
+
+  // 言語を切り替える関数
+  const toggleLanguage = () => {
+    const newLang = language === "ja" ? "en" : "ja";
+    console.log("言語を切り替えました:", newLang);
+    
+    // 言語状態を更新し、コールバックで要約処理を実行
+    setLanguage(newLang);
+    
+    // 既に要約が表示されている場合は、言語切り替え後に再度要約を行う
+    if (extractedText) {
+      // 言語状態が確実に更新されてから要約処理を実行するために、
+      // useEffectを使用して言語変更を検知して要約を実行する
+      console.log("要約を再実行します");
+    }
+  };
+  
+  // 言語が変更されたときに要約を再実行
+  useEffect(() => {
+    if (extractedText && !isExtracting && !isSummarizing) {
+      console.log("言語変更を検知しました:", language);
+      summarizeText(extractedText);
+    }
+  }, [language]);
 
   // URLからテキストを抽出する関数
   const extractTextFromUrl = async () => {
+    console.log("🔍 使用するエンドポイント:", language);
     if (!url) {
-      setError('URLを入力してください');
+      setError("URLを入力してください");
       return;
     }
 
@@ -108,16 +134,16 @@ export default function SummaryPage() {
 
     try {
       const response = await fetch(`${API_BASE_URL}/extract`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ url }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || 'テキスト抽出に失敗しました');
+        throw new Error(errorData.detail || "テキスト抽出に失敗しました");
       }
 
       const data = await response.json();
@@ -134,7 +160,7 @@ export default function SummaryPage() {
   // テキストを要約する関数
   const summarizeText = async (text: string) => {
     if (!text) {
-      setError('要約するテキストがありません');
+      setError("要約するテキストがありません");
       setIsExtracting(false);
       return;
     }
@@ -142,23 +168,28 @@ export default function SummaryPage() {
     setIsSummarizing(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/summarize`, {
-        method: 'POST',
+      // 言語に応じてエンドポイントを選択
+      const endpoint = language === "ja" ? "/summarize" : "/summarize_english";
+      console.log("🌐 現在の言語:", language);
+      console.log("🔗 使用するエンドポイント:", endpoint);
+
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ text }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || '要約に失敗しました');
+        throw new Error(errorData.detail || "要約に失敗しました");
       }
 
       const data = await response.json();
-      console.log('要約結果:', JSON.stringify(data, null, 2));
-      console.log('要約テキスト:', data.summary);
-      setSummary(data.summary || '要約結果が空です');
+      console.log("要約結果:", JSON.stringify(data, null, 2));
+      console.log("要約テキスト:", data.summary);
+      setSummary(data.summary || "要約結果が空です");
     } catch (err: any) {
       setError(`エラー: ${err.message}`);
     } finally {
@@ -170,7 +201,7 @@ export default function SummaryPage() {
   // 要約をSupabaseに保存する関数
   const saveSummary = async () => {
     if (!user || !extractedText || !summary) {
-      setError('保存に必要な情報が不足しています');
+      setError("保存に必要な情報が不足しています");
       return;
     }
 
@@ -180,24 +211,24 @@ export default function SummaryPage() {
 
     try {
       const response = await fetch(`${API_BASE_URL}/save`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           text: extractedText,
           summary: summary,
           user_id: user.id,
-          url: url
+          url: url,
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || '保存に失敗しました');
+        throw new Error(errorData.detail || "保存に失敗しました");
       }
 
-      setSuccess('要約が正常に保存されました');
+      setSuccess("要約が正常に保存されました");
     } catch (err: any) {
       setError(`エラー: ${err.message}`);
     } finally {
@@ -216,9 +247,7 @@ export default function SummaryPage() {
 
           {!loading && user && (
             <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-600">
-                {user.email}
-              </div>
+              <div className="text-sm text-gray-600">{user.email}</div>
               <button
                 onClick={handleSignOut}
                 className="bg-red-500 text-white py-1 px-3 text-sm rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
@@ -234,9 +263,22 @@ export default function SummaryPage() {
         ) : (
           <>
             <div className="mb-6">
-              <label htmlFor="url" className="block text-sm font-medium text-gray-700 mb-1">
-                URL
-              </label>
+              <div className="flex justify-between items-center mb-2">
+                <label
+                  htmlFor="url"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  URL
+                </label>
+                <button
+                  onClick={toggleLanguage}
+                  className="px-3 py-1 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  {language === "ja"
+                    ? "🇺🇸 英語に切り替え"
+                    : "🇯🇵 日本語に切り替え"}
+                </button>
+              </div>
               <div className="flex">
                 <input
                   type="url"
@@ -252,7 +294,11 @@ export default function SummaryPage() {
                   disabled={isExtracting || isSummarizing || !url}
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-r-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300"
                 >
-                  {isExtracting ? '抽出中...' : isSummarizing ? '要約中...' : '抽出して要約'}
+                  {isExtracting
+                    ? "抽出中..."
+                    : isSummarizing
+                    ? "要約中..."
+                    : "抽出して要約"}
                 </button>
               </div>
             </div>
@@ -271,7 +317,9 @@ export default function SummaryPage() {
 
             {extractedText && (
               <div className="mb-6">
-                <h2 className="text-lg font-semibold mb-2">抽出されたテキスト</h2>
+                <h2 className="text-lg font-semibold mb-2">
+                  抽出されたテキスト
+                </h2>
                 <div className="bg-gray-50 p-4 rounded-md max-h-60 overflow-y-auto text-sm">
                   {extractedText}
                 </div>
@@ -291,7 +339,7 @@ export default function SummaryPage() {
                     disabled={isSaving}
                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-green-300"
                   >
-                    {isSaving ? '保存中...' : 'Supabaseに保存'}
+                    {isSaving ? "保存中..." : "Supabaseに保存"}
                   </button>
                 </div>
               </div>

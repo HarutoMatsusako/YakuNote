@@ -150,3 +150,90 @@ def get_summary(summary_id: str):
         if isinstance(e, HTTPException):
             raise e
         raise HTTPException(status_code=500, detail=f"要約の取得に失敗しました: {str(e)}")
+
+@app.delete("/summary/{summary_id}")
+def delete_summary(summary_id: str):
+    try:
+        # 要約IDに基づいて要約を削除
+        response = supabase_client.table("summaries") \
+            .delete() \
+            .eq("id", summary_id) \
+            .execute()
+        
+        if not response.data:
+            raise HTTPException(status_code=404, detail="要約が見つかりませんでした")
+        
+        return {"status": "success", "message": "要約が削除されました"}
+    except Exception as e:
+        # エラーハンドリング
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(status_code=500, detail=f"要約の削除に失敗しました: {str(e)}")
+
+@app.post("/summarize_english")
+def summarize_english(input: TextInput):
+    # テキストの長さを制限（約8000トークン程度に制限）
+    max_chars = 12000
+    truncated_text = input.text[:max_chars] if len(input.text) > max_chars else input.text
+    
+    if len(input.text) > max_chars:
+        truncated_text += "...(Text is too long, only summarizing the first part)"
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "Please summarize the following text in English."},
+                {"role": "user", "content": truncated_text}
+            ]
+        )
+        summary = response.choices[0].message.content
+        
+        # 元のテキストが切り詰められた場合はその旨を追加
+        if len(input.text) > max_chars:
+            summary += "\n\n(Note: The original text was too long, only the first part was summarized)"
+            
+        return {"summary": summary}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error during summarization: {str(e)}")
+
+@app.get("/summary_english/{summary_id}")
+def get_summary_english(summary_id: str):
+    try:
+        # 要約IDに基づいて要約の詳細を取得
+        response = supabase_client.table("summaries") \
+            .select("*") \
+            .eq("id", summary_id) \
+            .limit(1) \
+            .execute()
+        
+        if not response.data:
+            raise HTTPException(status_code=404, detail="Summary not found")
+        
+        summary_data = response.data[0]
+        
+        # 元のテキストを英語で要約
+        original_text = summary_data["original_text"]
+        
+        # テキストの長さを制限
+        max_chars = 12000
+        truncated_text = original_text[:max_chars] if len(original_text) > max_chars else original_text
+        
+        # 英語で要約
+        openai_response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "Please summarize the following text in English."},
+                {"role": "user", "content": truncated_text}
+            ]
+        )
+        english_summary = openai_response.choices[0].message.content
+        
+        # 英語の要約で元の要約を置き換え
+        summary_data["summary"] = english_summary
+        
+        return {"summary": summary_data}
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(status_code=500, detail=f"Error retrieving summary: {str(e)}")
