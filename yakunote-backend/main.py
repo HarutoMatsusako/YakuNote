@@ -101,3 +101,52 @@ def save_summary(input: SummaryInput):
     except Exception as e:
         # エラーハンドリング
         raise HTTPException(status_code=500, detail=f"保存に失敗しました: {str(e)}")
+
+@app.get("/summaries/{user_id}")
+def get_summaries(user_id: str, skip: int = 0, limit: int = 10):
+    try:
+        # ユーザーIDに基づいて要約を取得
+        response = supabase_client.table("summaries") \
+            .select("id, summary, url, created_at") \
+            .eq("user_id", user_id) \
+            .order("created_at", desc=True) \
+            .range(skip, skip + limit - 1) \
+            .execute()
+        
+        # 総件数を取得
+        count_response = supabase_client.table("summaries") \
+            .select("id", count="exact") \
+            .eq("user_id", user_id) \
+            .execute()
+        
+        total_count = count_response.count if hasattr(count_response, 'count') else 0
+        
+        return {
+            "summaries": response.data,
+            "total": total_count,
+            "skip": skip,
+            "limit": limit
+        }
+    except Exception as e:
+        # エラーハンドリング
+        raise HTTPException(status_code=500, detail=f"要約の取得に失敗しました: {str(e)}")
+
+@app.get("/summary/{summary_id}")
+def get_summary(summary_id: str):
+    try:
+        # 要約IDに基づいて要約の詳細を取得
+        response = supabase_client.table("summaries") \
+            .select("*") \
+            .eq("id", summary_id) \
+            .limit(1) \
+            .execute()
+        
+        if not response.data:
+            raise HTTPException(status_code=404, detail="要約が見つかりませんでした")
+        
+        return {"summary": response.data[0]}
+    except Exception as e:
+        # エラーハンドリング
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(status_code=500, detail=f"要約の取得に失敗しました: {str(e)}")

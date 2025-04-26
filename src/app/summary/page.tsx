@@ -25,14 +25,14 @@ export default function SummaryPage() {
     const getUser = async () => {
       try {
         console.log('ユーザー情報を取得中...');
-        
+
         // テスト用にダミーユーザーを設定
         console.log('テスト用にダミーユーザーを設定します');
         setUser({
-          id: 'test-user-id',
+          id: '123e4567-e89b-12d3-a456-426614174000', // 有効なUUID形式に変更
           email: 'test@example.com'
         });
-        
+
         // 本来のコード（テスト時はコメントアウト）
         /*
         // まずセッションを確認
@@ -105,7 +105,7 @@ export default function SummaryPage() {
     setError(null);
     setSuccess(null);
     setIsExtracting(true);
-    
+
     try {
       const response = await fetch(`${API_BASE_URL}/extract`, {
         method: 'POST',
@@ -114,15 +114,15 @@ export default function SummaryPage() {
         },
         body: JSON.stringify({ url }),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.detail || 'テキスト抽出に失敗しました');
       }
-      
+
       const data = await response.json();
       setExtractedText(data.text);
-      
+
       // テキストを抽出したら自動的に要約を開始
       summarizeText(data.text);
     } catch (err: any) {
@@ -130,7 +130,7 @@ export default function SummaryPage() {
       setIsExtracting(false);
     }
   };
-  
+
   // テキストを要約する関数
   const summarizeText = async (text: string) => {
     if (!text) {
@@ -138,9 +138,9 @@ export default function SummaryPage() {
       setIsExtracting(false);
       return;
     }
-    
+
     setIsSummarizing(true);
-    
+
     try {
       const response = await fetch(`${API_BASE_URL}/summarize`, {
         method: 'POST',
@@ -149,12 +149,12 @@ export default function SummaryPage() {
         },
         body: JSON.stringify({ text }),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.detail || '要約に失敗しました');
       }
-      
+
       const data = await response.json();
       console.log('要約結果:', JSON.stringify(data, null, 2));
       console.log('要約テキスト:', data.summary);
@@ -166,18 +166,18 @@ export default function SummaryPage() {
       setIsSummarizing(false);
     }
   };
-  
+
   // 要約をSupabaseに保存する関数
   const saveSummary = async () => {
     if (!user || !extractedText || !summary) {
       setError('保存に必要な情報が不足しています');
       return;
     }
-    
+
     setIsSaving(true);
     setError(null);
     setSuccess(null);
-    
+
     try {
       const response = await fetch(`${API_BASE_URL}/save`, {
         method: 'POST',
@@ -191,12 +191,12 @@ export default function SummaryPage() {
           url: url
         }),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.detail || '保存に失敗しました');
       }
-      
+
       setSuccess('要約が正常に保存されました');
     } catch (err: any) {
       setError(`エラー: ${err.message}`);
@@ -209,11 +209,11 @@ export default function SummaryPage() {
     <div className="min-h-screen flex flex-col items-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       {/* 未ログインの場合は /login にリダイレクト */}
       <AuthRedirect requiredAuth={true} redirectTo="/login" />
-      
+
       <div className="w-full max-w-3xl bg-white p-8 rounded-lg shadow-md mb-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">YakuNote</h1>
-          
+
           {!loading && user && (
             <div className="flex items-center space-x-4">
               <div className="text-sm text-gray-600">
@@ -228,7 +228,7 @@ export default function SummaryPage() {
             </div>
           )}
         </div>
-        
+
         {loading ? (
           <p className="text-center py-4">読み込み中...</p>
         ) : (
@@ -256,19 +256,19 @@ export default function SummaryPage() {
                 </button>
               </div>
             </div>
-            
+
             {error && (
               <div className="bg-red-50 text-red-500 p-4 rounded-md text-sm mb-6">
                 {error}
               </div>
             )}
-            
+
             {success && (
               <div className="bg-green-50 text-green-500 p-4 rounded-md text-sm mb-6">
                 {success}
               </div>
             )}
-            
+
             {extractedText && (
               <div className="mb-6">
                 <h2 className="text-lg font-semibold mb-2">抽出されたテキスト</h2>
@@ -277,14 +277,14 @@ export default function SummaryPage() {
                 </div>
               </div>
             )}
-            
+
             {summary && (
               <div className="mb-6">
                 <h2 className="text-lg font-semibold mb-2">要約</h2>
-              <div className="bg-blue-50 p-4 rounded-md text-gray-800 whitespace-pre-wrap">
-                {summary}
-              </div>
-                
+                <div className="bg-blue-50 p-4 rounded-md text-gray-800 whitespace-pre-wrap">
+                  {summary}
+                </div>
+
                 <div className="mt-4 flex justify-end">
                   <button
                     onClick={saveSummary}
