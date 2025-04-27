@@ -8,6 +8,7 @@ import os
 import trafilatura
 import requests
 from datetime import datetime
+import requests
 
 today_summary_date = datetime.now().date()
 summary_count = 0
@@ -53,8 +54,9 @@ class TranslateInput(BaseModel):
 def extract_content(input: UrlInput):
     try:
         # URLからコンテンツを取得
-        response = requests.get(str(input.url))
+        response = requests.get(str(input.url), timeout=10)
         response.raise_for_status()  # エラーチェック
+        
         
         # HTMLから本文を抽出
         content = trafilatura.extract(response.text)

@@ -167,7 +167,7 @@ export default function SummariesPage() {
 
       <div className="w-full max-w-4xl bg-white p-8 rounded-lg shadow-md mb-8">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">保存した要約一覧</h1>
+          <h1 className="text-3xl font-bold"></h1>
 
           <div className="flex space-x-4">
 
@@ -177,9 +177,9 @@ export default function SummariesPage() {
 
             <Link
               href="/"
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              トップページへ
+              className="px-3 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 disabled:bg-indigo-300 transition-colors font-medium text-sm"
+              >
+              要約を始める
             </Link>
           </div>
         </div>
@@ -229,7 +229,7 @@ export default function SummariesPage() {
                       scope="col"
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                     >
-                      アクション
+                      
                     </th>
                   </tr>
                 </thead>

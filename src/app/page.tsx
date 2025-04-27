@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
+
 // バックエンドAPIのベースURL
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001";
 
@@ -286,8 +287,8 @@ export default function Home() {
                 <div className="text-sm text-gray-600">{user.email}</div>
                 <Link
                   href="/summaries"
-                  className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors font-medium text-sm"
-                >
+                  className="px-3 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 disabled:bg-indigo-300 transition-colors font-medium text-sm"
+                  >
                   保存一覧
                 </Link>
               </div>
@@ -299,12 +300,12 @@ export default function Home() {
                 ログイン
               </button>
             )}
-            <button
+            {/* <button
               onClick={goToSavedSummaries}
               className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors font-medium text-sm"
             >
               保存する
-            </button>
+            </button> */}
           </div>
         </div>
 
@@ -317,7 +318,7 @@ export default function Home() {
                 htmlFor="url"
                 className="block text-lg font-medium text-gray-700"
               >
-                URL入力
+                サイトURL
               </label>
             </div>
             <div className="flex space-x-4">
@@ -327,13 +328,13 @@ export default function Home() {
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="https://example.com"
-                className="flex-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base py-3 px-4"
+                className="flex-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base py-3 px-4 placeholder-gray-300"
                 disabled={isExtracting || isSummarizing}
               />
               <button
                 onClick={extractTextFromUrl}
                 disabled={isExtracting || isSummarizing || !url}
-                className="px-6 py-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:bg-indigo-300 transition-colors font-medium text-base"
+                className="px-6 py-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 disabled:bg-indigo-300 transition-colors font-medium text-base"
               >
                 {isExtracting
                   ? "抽出中..."
@@ -363,6 +364,7 @@ export default function Home() {
               <h2 className="text-xl font-semibold mb-4 text-gray-800">
                 要約結果
               </h2>
+              <div className="flex justify-end mb-0.5">
               <button
                 onClick={() => {
                   console.log(
@@ -375,6 +377,7 @@ export default function Home() {
               >
                 {language === "ja" ? "🇺🇸 English" : "🇯🇵 Japnanese"}
               </button>
+              </div>
               <div className="bg-indigo-50 p-6 rounded-lg text-gray-800 whitespace-pre-wrap text-base border border-indigo-100">
                 {summary}
               </div>
