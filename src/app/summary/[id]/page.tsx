@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AuthRedirect from '@/components/AuthRedirect';
+import { use } from "react";
+
 
 // バックエンドAPIのベースURL
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
@@ -21,7 +23,7 @@ interface SummaryDetail {
 export default function SummaryDetailPage({ params }: { params: { id: string } }) {
   // Next.js 14以降ではparamsは直接アクセスできないため、別の方法で対応
   // TypeScriptエラーを回避するために型アサーションを使用
-  const id = params.id;
+  const { id } = use(params);
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);

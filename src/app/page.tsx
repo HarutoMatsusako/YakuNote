@@ -75,34 +75,33 @@ export default function Home() {
   }, []);
 
   // 言語を切り替える関数
-  const toggleLanguage = () => {
-    try {
-      console.log("言語切り替えボタンがクリックされました");
-      const newLang = language === "ja" ? "en" : "ja";
-      console.log("新しい言語:", newLang);
-
-      // 既に要約が表示されている場合は、言語切り替え後に再度要約を行う
-      if (extractedText && summary) {
-        console.log(
-          "要約が表示されているため、言語切り替え後に要約を再実行します"
-        );
-
-        // 言語を変更
-        setLanguage(newLang);
-
-        // 言語変更後に要約を再実行（直接実行）
-        console.log("要約を再実行します");
-        summarizeText(extractedText);
-      } else {
-        // 要約がまだ表示されていない場合は、言語だけ切り替える
-        console.log("要約がまだ表示されていないため、言語のみ切り替えます");
-        setLanguage(newLang);
+  const toggleLanguage = async () => {
+    const newLang = language === "ja" ? "en" : "ja";
+    setLanguage(newLang);
+  
+    if (summary) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/translate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text: summary,
+            targetLang: newLang,
+          }),
+        });
+  
+        if (!response.ok) {
+          throw new Error("翻訳に失敗しました");
+        }
+  
+        const data = await response.json();
+        setSummary(data.translatedText);
+      } catch (error) {
+        console.error("翻訳エラー:", error);
       }
-    } catch (error) {
-      console.error("言語切り替え中にエラーが発生しました:", error);
     }
   };
-
+  
   // 言語が変更されたときのログ出力（デバッグ用）
   useEffect(() => {
     console.log("言語が変更されました:", language);
@@ -146,7 +145,7 @@ export default function Home() {
   };
 
   // テキストを要約する関数
-  const summarizeText = async (text: string) => {
+  const summarizeText = async (text: string, lang: "ja" | "en" = language) => {
     if (!text) {
       setError("要約するテキストがありません");
       setIsExtracting(false);
@@ -320,18 +319,6 @@ export default function Home() {
               >
                 URL入力
               </label>
-              <button
-                onClick={() => {
-                  console.log('言語切り替えボタンがクリックされました（インラインハンドラー）');
-                  toggleLanguage();
-                }}
-                className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors font-medium text-sm"
-                id="language-toggle-button"
-              >
-                {language === 'ja'
-                  ? '🇺🇸 英語に切り替え'
-                  : '🇯🇵 日本語に切り替え'}
-              </button>
             </div>
             <div className="flex space-x-4">
               <input
@@ -370,24 +357,24 @@ export default function Home() {
             </div>
           )}
 
-          {/* 抽出されたテキスト */}
-          {extractedText && (
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-4 text-gray-800">
-                抽出されたテキスト
-              </h2>
-              <div className="bg-gray-50 p-6 rounded-lg max-h-60 overflow-y-auto text-base text-gray-700 border border-gray-100">
-                {extractedText}
-              </div>
-            </div>
-          )}
-
           {/* 要約結果 */}
           {summary && (
             <div className="mb-6">
               <h2 className="text-xl font-semibold mb-4 text-gray-800">
                 要約結果
               </h2>
+              <button
+                onClick={() => {
+                  console.log(
+                    "言語切り替えボタンがクリックされました（インラインハンドラー）"
+                  );
+                  toggleLanguage();
+                }}
+                className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors font-medium text-sm"
+                id="language-toggle-button"
+              >
+                {language === "ja" ? "🇺🇸 English" : "🇯🇵 Japnanese"}
+              </button>
               <div className="bg-indigo-50 p-6 rounded-lg text-gray-800 whitespace-pre-wrap text-base border border-indigo-100">
                 {summary}
               </div>
@@ -400,6 +387,18 @@ export default function Home() {
                 >
                   {isSaving ? "保存中..." : "保存する"}
                 </button>
+              </div>
+            </div>
+          )}
+
+          {/* 抽出されたテキスト */}
+          {extractedText && (
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold mb-4 text-gray-800">
+                抽出されたテキスト
+              </h2>
+              <div className="bg-gray-50 p-6 rounded-lg max-h-60 overflow-y-auto text-base text-gray-700 border border-gray-100">
+                {extractedText}
               </div>
             </div>
           )}

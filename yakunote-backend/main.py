@@ -39,6 +39,12 @@ class SummaryInput(BaseModel):
     user_id: str
     url: str = None
 
+class TranslateInput(BaseModel):
+    text: str
+    targetLang: str  # "ja" or "en"
+
+
+
 @app.post("/extract")
 def extract_content(input: UrlInput):
     try:
@@ -197,6 +203,8 @@ def summarize_english(input: TextInput):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error during summarization: {str(e)}")
 
+
+
 @app.get("/summary_english/{summary_id}")
 def get_summary_english(summary_id: str):
     try:
@@ -237,3 +245,21 @@ def get_summary_english(summary_id: str):
         if isinstance(e, HTTPException):
             raise e
         raise HTTPException(status_code=500, detail=f"Error retrieving summary: {str(e)}")
+    
+  
+
+@app.post("/translate")
+def translate_text(input: TranslateInput):
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": f"以下の文章を{input.targetLang}語に翻訳してください。"},
+                {"role": "user", "content": input.text}
+            ]
+        )
+        translated = response.choices[0].message.content
+        return {"translatedText": translated}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"翻訳中にエラーが発生しました: {str(e)}")
+
