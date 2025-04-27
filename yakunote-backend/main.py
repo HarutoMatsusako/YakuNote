@@ -79,8 +79,8 @@ def summarize(input: TextInput):
         summary_count = 0
 
     # 要約回数チェック
-    if summary_count >= 1:
-        raise HTTPException(status_code=429, detail="本日の要約可能回数（1回）に達しました")
+    if summary_count >= 10:
+        raise HTTPException(status_code=429, detail="本日の要約可能回数（10回）に達しました")
 
     summary_count += 1
 

@@ -29,14 +29,14 @@ export default function Home() {
         console.log("ユーザー情報を取得中...");
 
         // テスト用にダミーユーザーを設定
-        console.log("テスト用にダミーユーザーを設定します");
-        setUser({
-          id: "123e4567-e89b-12d3-a456-426614174000", // 有効なUUID形式
-          email: "test@example.com",
-        });
+        // console.log("テスト用にダミーユーザーを設定します");
+        // setUser({
+        //   id: "123e4567-e89b-12d3-a456-426614174000", // 有効なUUID形式
+        //   email: "test@example.com",
+        // });
 
         // 本来のコード（テスト時はコメントアウト）
-        /*
+        
         // まずセッションを確認
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
@@ -63,7 +63,7 @@ export default function Home() {
           console.log('ユーザー取得成功:', user);
           setUser(user);
         }
-        */
+        
       } catch (err) {
         console.error("認証エラー:", err);
       } finally {

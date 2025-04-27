@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AuthRedirect from "@/components/AuthRedirect";
+import { supabase } from "@/lib/supabase";
 
 // バックエンドAPIのベースURL
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001";
@@ -41,41 +42,46 @@ export default function SummariesPage() {
         console.log("ユーザー情報を取得中...");
 
         // テスト用にダミーユーザーを設定
-        console.log("テスト用にダミーユーザーを設定します");
-        setUser({
-          id: "123e4567-e89b-12d3-a456-426614174000", // 有効なUUID形式
-          email: "test@example.com",
-        });
+        // console.log("テスト用にダミーユーザーを設定します");
+        // setUser({
+        //   id: "123e4567-e89b-12d3-a456-426614174000", // 有効なUUID形式
+        //   email: "test@example.com",
+        // });
 
         // 本来のコード（テスト時はコメントアウト）
-        /*
+
         // まずセッションを確認
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
+
         if (sessionError) {
-          console.error('セッション取得エラー:', sessionError);
+          console.error("セッション取得エラー:", sessionError);
           setLoading(false);
           return;
         }
-        
+
         if (!session) {
-          console.log('セッションがありません');
+          console.log("セッションがありません");
           setLoading(false);
           return;
         }
-        
-        console.log('セッション取得成功:', session);
-        
+
+        console.log("セッション取得成功:", session);
+
         // ユーザー情報を取得
-        const { data: { user }, error } = await supabase.auth.getUser();
-        
+        const {
+          data: { user },
+          error,
+        } = await supabase.auth.getUser();
+
         if (error) {
-          console.error('ユーザー取得エラー:', error);
+          console.error("ユーザー取得エラー:", error);
         } else {
-          console.log('ユーザー取得成功:', user);
+          console.log("ユーザー取得成功:", user);
           setUser(user);
         }
-        */
       } catch (err) {
         console.error("認証エラー:", err);
       } finally {
@@ -164,18 +170,17 @@ export default function SummariesPage() {
           <h1 className="text-3xl font-bold">保存した要約一覧</h1>
 
           <div className="flex space-x-4">
+
+            {/* {!loading && user && (
+              <div className="text-sm text-gray-600">{user.email}</div>
+            )} */}
+
             <Link
               href="/"
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               トップページへ
             </Link>
-
-            {!loading && user && (
-              <div className="flex items-center space-x-4">
-                <div className="text-sm text-gray-600">{user.email}</div>
-              </div>
-            )}
           </div>
         </div>
         {loading && !error ? (
