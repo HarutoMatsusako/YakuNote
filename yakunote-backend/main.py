@@ -7,6 +7,10 @@ from supabase import create_client, Client
 import os
 import trafilatura
 import requests
+from datetime import datetime
+
+today_summary_date = datetime.now().date()
+summary_count = 0
 
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -66,13 +70,27 @@ def extract_content(input: UrlInput):
 
 @app.post("/summarize")
 def summarize(input: TextInput):
-    # テキストの長さを制限（約8000トークン程度に制限）
+    global today_summary_date, summary_count
+
+    # 日付が変わったらリセット
+    now = datetime.now().date()
+    if now != today_summary_date:
+        today_summary_date = now
+        summary_count = 0
+
+    # 要約回数チェック
+    if summary_count >= 1:
+        raise HTTPException(status_code=429, detail="本日の要約可能回数（1回）に達しました")
+
+    summary_count += 1
+
+    # ↓ここから今までの要約ロジックを書く
     max_chars = 12000
     truncated_text = input.text[:max_chars] if len(input.text) > max_chars else input.text
-    
+
     if len(input.text) > max_chars:
         truncated_text += "...(テキストが長すぎるため、一部のみを要約しています)"
-    
+
     try:
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
@@ -82,15 +100,14 @@ def summarize(input: TextInput):
             ]
         )
         summary = response.choices[0].message.content
-        
-        # 元のテキストが切り詰められた場合はその旨を追加
+
         if len(input.text) > max_chars:
             summary += "\n\n(注: 元のテキストが長すぎるため、最初の部分のみを要約しています)"
-            
+
         return {"summary": summary}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"要約中にエラーが発生しました: {str(e)}")
-
+    
 @app.post("/save")
 def save_summary(input: SummaryInput):
     try:
