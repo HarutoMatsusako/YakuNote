@@ -1,37 +1,38 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 
 // バックエンドAPIのベースURL
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001";
 
 export default function Home() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [url, setUrl] = useState('');
-  const [extractedText, setExtractedText] = useState('');
-  const [summary, setSummary] = useState('');
+  const [url, setUrl] = useState("");
+  const [extractedText, setExtractedText] = useState("");
+  const [summary, setSummary] = useState("");
   const [isExtracting, setIsExtracting] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [language, setLanguage] = useState<'ja' | 'en'>('ja');
+  const [language, setLanguage] = useState<"ja" | "en">("ja");
+  const [shouldRerun, setShouldRerun] = useState(false);
 
   useEffect(() => {
     const getUser = async () => {
       try {
-        console.log('ユーザー情報を取得中...');
+        console.log("ユーザー情報を取得中...");
 
         // テスト用にダミーユーザーを設定
-        console.log('テスト用にダミーユーザーを設定します');
+        console.log("テスト用にダミーユーザーを設定します");
         setUser({
-          id: '123e4567-e89b-12d3-a456-426614174000', // 有効なUUID形式
-          email: 'test@example.com',
+          id: "123e4567-e89b-12d3-a456-426614174000", // 有効なUUID形式
+          email: "test@example.com",
         });
 
         // 本来のコード（テスト時はコメントアウト）
@@ -64,7 +65,7 @@ export default function Home() {
         }
         */
       } catch (err) {
-        console.error('認証エラー:', err);
+        console.error("認証エラー:", err);
       } finally {
         setLoading(false);
       }
@@ -75,33 +76,42 @@ export default function Home() {
 
   // 言語を切り替える関数
   const toggleLanguage = () => {
-    const newLang = language === 'ja' ? 'en' : 'ja';
-    console.log('言語を切り替えました:', newLang);
-    setLanguage(newLang);
-    
-    // 既に要約が表示されている場合は、言語切り替え後に再度要約を行う
-    if (extractedText) {
-      console.log('要約を再実行します');
-      // 言語切り替え後に少し遅延を入れて要約を再実行
-      setTimeout(() => {
-        console.log('遅延後に要約を再実行します:', newLang);
+    try {
+      console.log("言語切り替えボタンがクリックされました");
+      const newLang = language === "ja" ? "en" : "ja";
+      console.log("新しい言語:", newLang);
+
+      // 既に要約が表示されている場合は、言語切り替え後に再度要約を行う
+      if (extractedText && summary) {
+        console.log(
+          "要約が表示されているため、言語切り替え後に要約を再実行します"
+        );
+
+        // 言語を変更
+        setLanguage(newLang);
+
+        // 言語変更後に要約を再実行（直接実行）
+        console.log("要約を再実行します");
         summarizeText(extractedText);
-      }, 500); // 遅延時間を増やす
+      } else {
+        // 要約がまだ表示されていない場合は、言語だけ切り替える
+        console.log("要約がまだ表示されていないため、言語のみ切り替えます");
+        setLanguage(newLang);
+      }
+    } catch (error) {
+      console.error("言語切り替え中にエラーが発生しました:", error);
     }
   };
-  
-  // 言語が変更されたときに要約を再実行
+
+  // 言語が変更されたときのログ出力（デバッグ用）
   useEffect(() => {
-    if (extractedText && !isExtracting && !isSummarizing) {
-      console.log('言語変更を検知しました:', language);
-      summarizeText(extractedText);
-    }
-  }, [language, extractedText, isExtracting, isSummarizing]);
+    console.log("言語が変更されました:", language);
+  }, [language]);
 
   // URLからテキストを抽出する関数
   const extractTextFromUrl = async () => {
     if (!url) {
-      setError('URLを入力してください');
+      setError("URLを入力してください");
       return;
     }
 
@@ -111,22 +121,23 @@ export default function Home() {
 
     try {
       const response = await fetch(`${API_BASE_URL}/extract`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ url }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || 'テキスト抽出に失敗しました');
+        throw new Error(errorData.detail || "テキスト抽出に失敗しました");
       }
 
       const data = await response.json();
       setExtractedText(data.text);
 
       // テキストを抽出したら自動的に要約を開始
+      console.log("テキスト抽出完了、要約を開始します");
       summarizeText(data.text);
     } catch (err: any) {
       setError(`エラー: ${err.message}`);
@@ -137,7 +148,7 @@ export default function Home() {
   // テキストを要約する関数
   const summarizeText = async (text: string) => {
     if (!text) {
-      setError('要約するテキストがありません');
+      setError("要約するテキストがありません");
       setIsExtracting(false);
       return;
     }
@@ -146,25 +157,25 @@ export default function Home() {
 
     try {
       // 言語に応じてエンドポイントを選択
-      const endpoint = language === 'ja' ? '/summarize' : '/summarize_english';
-      console.log('🌐 現在の言語:', language);
-      console.log('🔗 使用するエンドポイント:', endpoint);
+      const endpoint = language === "ja" ? "/summarize" : "/summarize_english";
+      console.log("🌐 現在の言語:", language);
+      console.log("🔗 使用するエンドポイント:", endpoint);
 
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ text }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || '要約に失敗しました');
+        throw new Error(errorData.detail || "要約に失敗しました");
       }
 
       const data = await response.json();
-      setSummary(data.summary || '要約結果が空です');
+      setSummary(data.summary || "要約結果が空です");
     } catch (err: any) {
       setError(`エラー: ${err.message}`);
     } finally {
@@ -175,18 +186,20 @@ export default function Home() {
 
   // 要約をSupabaseに保存する関数
   const saveSummary = async () => {
-    console.log('保存ボタンがクリックされました');
-    
+    console.log("保存ボタンがクリックされました");
+
     if (!user) {
       // 未ログインの場合はログインページにリダイレクト
-      console.log('ユーザーが未ログインです。ログインページにリダイレクトします');
-      router.push('/login');
+      console.log(
+        "ユーザーが未ログインです。ログインページにリダイレクトします"
+      );
+      router.push("/login");
       return;
     }
-    
+
     if (!extractedText || !summary) {
-      console.log('保存に必要な情報が不足しています');
-      setError('保存に必要な情報が不足しています');
+      console.log("保存に必要な情報が不足しています");
+      setError("保存に必要な情報が不足しています");
       return;
     }
 
@@ -195,11 +208,11 @@ export default function Home() {
     setSuccess(null);
 
     try {
-      console.log('保存APIを呼び出します');
+      console.log("保存APIを呼び出します");
       const response = await fetch(`${API_BASE_URL}/save`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           text: extractedText,
@@ -211,14 +224,17 @@ export default function Home() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('保存APIからエラーレスポンスを受け取りました:', errorData);
-        throw new Error(errorData.detail || '保存に失敗しました');
+        console.error(
+          "保存APIからエラーレスポンスを受け取りました:",
+          errorData
+        );
+        throw new Error(errorData.detail || "保存に失敗しました");
       }
 
-      console.log('保存が成功しました');
-      setSuccess('要約が正常に保存されました');
+      console.log("保存が成功しました");
+      setSuccess("要約が正常に保存されました");
     } catch (err: any) {
-      console.error('保存中にエラーが発生しました:', err);
+      console.error("保存中にエラーが発生しました:", err);
       setError(`エラー: ${err.message}`);
     } finally {
       setIsSaving(false);
@@ -229,13 +245,13 @@ export default function Home() {
   const goToSavedSummaries = () => {
     if (!user) {
       // 未ログインの場合はログインページにリダイレクト
-      router.push('/login');
+      router.push("/login");
       return;
     }
-    
-    router.push('/summaries');
+
+    router.push("/summaries");
   };
-  
+
   // 成功メッセージを一定時間後に消す
   useEffect(() => {
     if (success) {
@@ -245,7 +261,7 @@ export default function Home() {
       return () => clearTimeout(timer);
     }
   }, [success]);
-  
+
   // エラーメッセージを一定時間後に消す
   useEffect(() => {
     if (error) {
@@ -261,8 +277,10 @@ export default function Home() {
       <div className="w-full max-w-4xl">
         {/* ヘッダー部分 */}
         <div className="flex justify-between items-center mb-10">
-          <h1 className="text-4xl font-bold text-indigo-700 font-sans">YakuNote</h1>
-          
+          <h1 className="text-4xl font-bold text-indigo-700 font-sans">
+            YakuNote
+          </h1>
+
           <div className="flex items-center space-x-4">
             {!loading && user ? (
               <div className="flex items-center space-x-4">
@@ -276,7 +294,7 @@ export default function Home() {
               </div>
             ) : (
               <button
-                onClick={() => router.push('/login')}
+                onClick={() => router.push("/login")}
                 className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors font-medium text-sm"
               >
                 ログイン
@@ -290,7 +308,7 @@ export default function Home() {
             </button>
           </div>
         </div>
-        
+
         {/* メインコンテンツ */}
         <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 mb-8">
           {/* URL入力部分 */}
@@ -303,8 +321,12 @@ export default function Home() {
                 URL入力
               </label>
               <button
-                onClick={toggleLanguage}
-                className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors font-medium text-sm"
+                onClick={() => {
+                  console.log('言語切り替えボタンがクリックされました（インラインハンドラー）');
+                  toggleLanguage();
+                }}
+                className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors font-medium text-sm"
+                id="language-toggle-button"
               >
                 {language === 'ja'
                   ? '🇺🇸 英語に切り替え'
@@ -327,10 +349,10 @@ export default function Home() {
                 className="px-6 py-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:bg-indigo-300 transition-colors font-medium text-base"
               >
                 {isExtracting
-                  ? '抽出中...'
+                  ? "抽出中..."
                   : isSummarizing
-                  ? '要約中...'
-                  : '要約開始'}
+                  ? "要約中..."
+                  : "要約開始"}
               </button>
             </div>
           </div>
@@ -363,7 +385,9 @@ export default function Home() {
           {/* 要約結果 */}
           {summary && (
             <div className="mb-6">
-              <h2 className="text-xl font-semibold mb-4 text-gray-800">要約結果</h2>
+              <h2 className="text-xl font-semibold mb-4 text-gray-800">
+                要約結果
+              </h2>
               <div className="bg-indigo-50 p-6 rounded-lg text-gray-800 whitespace-pre-wrap text-base border border-indigo-100">
                 {summary}
               </div>
@@ -374,7 +398,7 @@ export default function Home() {
                   disabled={isSaving}
                   className="px-6 py-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:bg-indigo-300 transition-colors font-medium text-base"
                 >
-                  {isSaving ? '保存中...' : '保存する'}
+                  {isSaving ? "保存中..." : "保存する"}
                 </button>
               </div>
             </div>
