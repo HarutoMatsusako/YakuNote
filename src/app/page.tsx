@@ -68,8 +68,9 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+        {/* ここまで箱セクション */}
 
-        {/* 要約をはじめるリンク */}
+        {/* 要約ページへリンク */}
         <div className="text-center mt-8">
           <Link
             href="/summarize"
