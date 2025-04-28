@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabase';
 
 type AuthFormProps = {
@@ -9,9 +8,7 @@ type AuthFormProps = {
 };
 
 export default function AuthForm({ type }: AuthFormProps) {
-  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
   // Googleサインイン処理
@@ -41,9 +38,10 @@ export default function AuthForm({ type }: AuthFormProps) {
 
       // リダイレクトはSupabaseが自動的に処理するため、
       // ここに到達することはほとんどない
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Googleサインインエラー:', err);
-      setError(`Googleサインインエラー: ${err.message || 'Unknown error'}`);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setError(`Googleサインインエラー: ${errorMessage}`);
       setGoogleLoading(false);
     }
   };

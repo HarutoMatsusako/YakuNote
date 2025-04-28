@@ -1,11 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AuthRedirect from "@/components/AuthRedirect";
-import { use } from "react";
-
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001";
 
 interface SummaryDetail {
@@ -22,9 +20,11 @@ export default function SummaryDetailPage({
 }: {
   params: { id: string };
 }) {
-  const { id } = use(params);
+  // Next.js 15.2.4では、paramsはPromiseになっているため、React.use()でラップする
+  const resolvedParams = use(params as any) as { id: string };
+  const id = resolvedParams.id;
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{id: string; email: string} | null>(null);
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState<SummaryDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -54,11 +54,7 @@ export default function SummaryDetailPage({
     setLanguage(newLang);
   };
 
-  useEffect(() => {
-    if (id) fetchSummaryDetail();
-  }, [language]);
-
-  const fetchSummaryDetail = async () => {
+  const fetchSummaryDetail = useCallback(async () => {
     if (!id) return;
     try {
       setError(null);
@@ -74,16 +70,21 @@ export default function SummaryDetailPage({
       }
       const data = await response.json();
       setSummary(data.summary);
-    } catch (err: any) {
-      setError(`エラー: ${err.message}`);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : '不明なエラーが発生しました';
+      setError(`エラー: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, language]);
 
   useEffect(() => {
     if (id) fetchSummaryDetail();
-  }, [id]);
+  }, [id, fetchSummaryDetail]);
+
+  useEffect(() => {
+    if (id) fetchSummaryDetail();
+  }, [language, fetchSummaryDetail]);
 
   const deleteSummary = async () => {
     if (!id || !confirm("この要約を削除してもよろしいですか？")) return;
@@ -100,8 +101,9 @@ export default function SummaryDetailPage({
       }
       setSuccess("要約が正常に削除されました");
       setTimeout(() => router.push("/summaries"), 1000);
-    } catch (err: any) {
-      setError(`エラー: ${err.message}`);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : '不明なエラーが発生しました';
+      setError(`エラー: ${errorMessage}`);
     } finally {
       setIsDeleting(false);
     }

@@ -46,14 +46,8 @@ export type Database = {
       };
       // 他のテーブルがあれば追加
     };
-    Views: {
-      // ビューがあれば追加
-    };
-    Functions: {
-      // 関数があれば追加
-    };
-    Enums: {
-      // 列挙型があれば追加
-    };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+    Enums: Record<string, never>;
   };
 };

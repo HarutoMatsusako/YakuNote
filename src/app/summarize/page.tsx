@@ -11,7 +11,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001";
 
 export default function Home() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{id: string; email?: string} | null>(null);
   const [loading, setLoading] = useState(true);
   const [url, setUrl] = useState("");
   const [extractedText, setExtractedText] = useState("");
@@ -22,7 +22,6 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [language, setLanguage] = useState<"ja" | "en">("ja");
-  const [shouldRerun, setShouldRerun] = useState(false);
 
   useEffect(() => {
     const getUser = async () => {
@@ -139,14 +138,15 @@ export default function Home() {
       // テキストを抽出したら自動的に要約を開始
       console.log("テキスト抽出完了、要約を開始します");
       summarizeText(data.text);
-    } catch (err: any) {
-      setError(`エラー: ${err.message}`);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : '不明なエラーが発生しました';
+      setError(`エラー: ${errorMessage}`);
       setIsExtracting(false);
     }
   };
 
   // テキストを要約する関数
-  const summarizeText = async (text: string, lang: "ja" | "en" = language) => {
+  const summarizeText = async (text: string) => {
     if (!text) {
       setError("要約するテキストがありません");
       setIsExtracting(false);
@@ -176,8 +176,9 @@ export default function Home() {
 
       const data = await response.json();
       setSummary(data.summary || "要約結果が空です");
-    } catch (err: any) {
-      setError(`エラー: ${err.message}`);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : '不明なエラーが発生しました';
+      setError(`エラー: ${errorMessage}`);
     } finally {
       setIsExtracting(false);
       setIsSummarizing(false);
@@ -233,23 +234,13 @@ export default function Home() {
 
       console.log("保存が成功しました");
       setSuccess("要約が正常に保存されました");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("保存中にエラーが発生しました:", err);
-      setError(`エラー: ${err.message}`);
+      const errorMessage = err instanceof Error ? err.message : '不明なエラーが発生しました';
+      setError(`エラー: ${errorMessage}`);
     } finally {
       setIsSaving(false);
     }
-  };
-
-  // 保存済み要約一覧ページに移動する関数
-  const goToSavedSummaries = () => {
-    if (!user) {
-      // 未ログインの場合はログインページにリダイレクト
-      router.push("/login");
-      return;
-    }
-
-    router.push("/summaries");
   };
 
   // 成功メッセージを一定時間後に消す
@@ -300,12 +291,6 @@ export default function Home() {
                 ログイン
               </button>
             )}
-            {/* <button
-              onClick={goToSavedSummaries}
-              className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors font-medium text-sm"
-            >
-              保存する
-            </button> */}
           </div>
         </div>
 

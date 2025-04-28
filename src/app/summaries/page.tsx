@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import AuthRedirect from "@/components/AuthRedirect";
 import { supabase } from "@/lib/supabase";
@@ -25,8 +24,7 @@ interface PaginationInfo {
 }
 
 export default function SummariesPage() {
-  const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{id: string; email?: string} | null>(null);
   const [loading, setLoading] = useState(true);
   const [summaries, setSummaries] = useState<Summary[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo>({
@@ -93,7 +91,7 @@ export default function SummariesPage() {
   }, []);
 
   // 要約一覧を取得する関数
-  const fetchSummaries = async (skip = 0, limit = 10) => {
+  const fetchSummaries = useCallback(async (skip = 0, limit = 10) => {
     if (!user) return;
 
     try {
@@ -116,19 +114,20 @@ export default function SummariesPage() {
         skip: data.skip,
         limit: data.limit,
       });
-    } catch (err: any) {
-      setError(`エラー: ${err.message}`);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : '不明なエラーが発生しました';
+      setError(`エラー: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   // ユーザー情報が取得できたら要約一覧を取得
   useEffect(() => {
     if (user) {
       fetchSummaries();
     }
-  }, [user]);
+  }, [user, fetchSummaries]);
 
   // ページを変更する関数
   const changePage = (newSkip: number) => {

@@ -47,10 +47,11 @@ export async function POST(request: Request) {
     console.log('ログイン成功:', { user: data.user?.id });
     
     return NextResponse.json({ data });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('APIルートエラー:', err);
+    const errorMessage = err instanceof Error ? err.message : '不明なエラーが発生しました';
     return NextResponse.json({ 
-      error: `エラーが発生しました: ${err.message}` 
+      error: `エラーが発生しました: ${errorMessage}` 
     }, { status: 500 });
   }
 }

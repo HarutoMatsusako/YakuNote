@@ -62,10 +62,11 @@ export async function GET(request: NextRequest) {
     
     // ログイン成功後のリダイレクト先
     return NextResponse.redirect(new URL('/summary', request.url));
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('コールバック処理エラー:', err);
+    const errorMessage = err instanceof Error ? err.message : '不明なエラーが発生しました';
     return NextResponse.redirect(
-      new URL(`/login?error=${encodeURIComponent(err.message)}`, request.url)
+      new URL(`/login?error=${encodeURIComponent(errorMessage)}`, request.url)
     );
   }
 }

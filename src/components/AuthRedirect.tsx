@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '../lib/supabase';
 
 type AuthRedirectProps = {
   requiredAuth: boolean;
@@ -11,7 +10,6 @@ type AuthRedirectProps = {
 
 export default function AuthRedirect({ requiredAuth, redirectTo }: AuthRedirectProps) {
   const router = useRouter();
-  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -40,8 +38,6 @@ export default function AuthRedirect({ requiredAuth, redirectTo }: AuthRedirectP
         */
       } catch (err) {
         console.error('認証チェックエラー:', err);
-      } finally {
-        setIsChecking(false);
       }
     };
 
