@@ -1,14 +1,10 @@
-import type { NextConfig } from "next";
+// next.config.mjs
 
-const nextConfig: NextConfig = {
+export default {
   typescript: {
-    // 本番ビルド時にTypeScriptの型エラーがあってもビルドを続行する
     ignoreBuildErrors: true,
   },
   eslint: {
-    // 本番ビルド時にESLintエラーがあってもビルドを続行する
     ignoreDuringBuilds: true,
   },
 };
-
-export default nextConfig;
