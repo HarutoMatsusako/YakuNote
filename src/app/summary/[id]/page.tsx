@@ -129,7 +129,7 @@ export default function SummaryDetailPage({
           <div className="flex space-x-4">
             {!loading && user && (
               <div className="flex items-center space-x-4">
-                <div className="text-sm text-gray-600">{user.email}</div>
+                {/* <div className="text-sm text-gray-600">{user.email}</div> */}
               </div>
             )}
             <Link

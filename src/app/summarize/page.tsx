@@ -284,7 +284,7 @@ export default function Home() {
           <div className="flex items-center space-x-4">
             {!loading && user ? (
               <div className="flex items-center space-x-4">
-                <div className="text-sm text-gray-600">{user.email}</div>
+                {/* <div className="text-sm text-gray-600">{user.email}</div> */}
                 <Link
                   href="/summaries"
                   className="px-3 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 disabled:bg-indigo-300 transition-colors font-medium text-sm"
