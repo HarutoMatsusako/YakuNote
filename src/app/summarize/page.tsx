@@ -96,8 +96,9 @@ export default function Home() {
   
         const data = await response.json();
         setSummary(data.translatedText);
-      } catch (error) {
-        console.error("翻訳エラー:", error);
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : '不明なエラーが発生しました';
+        console.error("翻訳エラー:", errorMessage);
       }
     }
   };

@@ -83,7 +83,7 @@ export default function LandingPage() {
 
       {/* フッター */}
       <footer className="text-center text-gray-400 text-sm py-4">
-        © {new Date().getFullYear()} YakuNote. All rights reserved.
+        &copy; {new Date().getFullYear()} YakuNote. All rights reserved.
       </footer>
     </div>
   );
