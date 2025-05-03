@@ -11,7 +11,7 @@
     }
   },
   "routes": [
-    { "src": "/api/extract", "methods": ["POST"], "dest": "/api/extract" },
+    { "src": "/api/extract", "methods": ["POST"], "dest": "/api/extract", "headers": { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "POST, OPTIONS" } },
     { "src": "/api/summarize", "methods": ["POST"], "dest": "/api/summarize" },
     { "src": "/api/summarize_english", "methods": ["POST"], "dest": "/api/summarize_english" },
     { "src": "/api/translate", "methods": ["POST"], "dest": "/api/translate" },
