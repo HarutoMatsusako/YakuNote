@@ -1,6 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
+/**
+ * Summarize API
+ * 
+ * このAPIは、テキストを要約するためのエンドポイントです。
+ * OpenAI GPT-3.5-turboモデルを使用して、日本語のテキストを要約します。
+ * 
+ * @version 1.0.1
+ * @date 2025-05-03
+ */
+
+// OPTIONSメソッドを追加してCORSプリフライトリクエストに対応
+export async function OPTIONS(req: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400',
+    },
+  });
+}
+
 // OpenAIクライアントの初期化（実行時のみ）
 let openaiClient: OpenAI | null = null;
 
@@ -27,7 +50,14 @@ export async function POST(request: NextRequest) {
     if (!text) {
       return NextResponse.json(
         { detail: "テキストが指定されていません" },
-        { status: 400 }
+        { 
+          status: 400,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          }
+        }
       );
     }
 
@@ -56,12 +86,28 @@ export async function POST(request: NextRequest) {
       summary += "\n\n(注: 元のテキストが長すぎるため、最初の部分のみを要約しています)";
     }
 
-    return NextResponse.json({ summary });
+    return NextResponse.json(
+      { summary },
+      {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        }
+      }
+    );
   } catch (e: any) {
     console.error('Summarize API error:', e);
     return NextResponse.json(
       { detail: `要約中にエラーが発生しました: ${e.message}` },
-      { status: 500 }
+      { 
+        status: 500,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        }
+      }
     );
   }
 }

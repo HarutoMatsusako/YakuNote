@@ -1,5 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+/**
+ * Extract API
+ * 
+ * このAPIは、指定されたURLからテキストを抽出するためのエンドポイントです。
+ * CORSに対応するため、OPTIONSメソッドとPOSTメソッドの両方を実装しています。
+ * 
+ * @version 1.0.1
+ * @date 2025-05-03
+ */
+
 // OPTIONSメソッドを追加してCORSプリフライトリクエストに対応
 export async function OPTIONS(req: NextRequest) {
   return new NextResponse(null, {
