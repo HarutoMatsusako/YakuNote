@@ -1,15 +1,8 @@
 {
+  "version": 2,
   "buildCommand": "next build",
   "ignoreCommand": "echo 'Skipping linting'",
   "framework": "nextjs",
-  "buildConfig": {
-    "eslint": {
-      "ignoreDuringBuilds": true
-    },
-    "typescript": {
-      "ignoreBuildErrors": true
-    }
-  },
   "routes": [
     {
       "src": "/api/extract",
