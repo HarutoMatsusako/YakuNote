@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import AuthForm from '@/components/AuthForm';
 import AuthRedirect from '@/components/AuthRedirect';
 
-export default function LoginPage() {
+// SearchParamsを取得するコンポーネント
+function LoginContent() {
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   
@@ -31,6 +32,21 @@ export default function LoginPage() {
   }, [searchParams]);
   
   return (
+    <>
+      {error && (
+        <div className="bg-red-50 text-red-500 p-4 rounded-md text-sm mb-6">
+          {error}
+        </div>
+      )}
+      
+      <AuthForm type="login" />
+    </>
+  );
+}
+
+export default function LoginPage() {
+  
+  return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md">
         {/* すでにログインしている場合は /summary にリダイレクト */}
@@ -43,13 +59,9 @@ export default function LoginPage() {
           </p>
         </div>
         
-        {error && (
-          <div className="bg-red-50 text-red-500 p-4 rounded-md text-sm mb-6">
-            {error}
-          </div>
-        )}
-        
-        <AuthForm type="login" />
+        <Suspense fallback={<div>読み込み中...</div>}>
+          <LoginContent />
+        </Suspense>
       </div>
     </div>
   );

@@ -22,7 +22,7 @@ export default function SummaryDetailPage({
   params: { id: string };
 }) {
   // Next.js 15.2.4では、paramsはPromiseになっているため、React.use()でラップする
-  const resolvedParams = use(params as any) as { id: string };
+  const resolvedParams = use(params);
   const id = resolvedParams.id;
   const router = useRouter();
   const [user, setUser] = useState<{id: string; email?: string} | null>(null);
@@ -119,10 +119,12 @@ export default function SummaryDetailPage({
     }
   }, [id, language, user]);
 
+  // 要約詳細を取得（idとuserが存在する場合）
   useEffect(() => {
     if (id && user) fetchSummaryDetail();
   }, [id, user, fetchSummaryDetail]);
 
+  // 言語が変更された時に要約詳細を再取得
   useEffect(() => {
     if (id && user) fetchSummaryDetail();
   }, [language, id, user, fetchSummaryDetail]);
