@@ -9,5 +9,15 @@
     "typescript": {
       "ignoreBuildErrors": true
     }
-  }
+  },
+  "routes": [
+    { "src": "/api/extract", "methods": ["POST"], "dest": "/api/extract" },
+    { "src": "/api/summarize", "methods": ["POST"], "dest": "/api/summarize" },
+    { "src": "/api/summarize_english", "methods": ["POST"], "dest": "/api/summarize_english" },
+    { "src": "/api/translate", "methods": ["POST"], "dest": "/api/translate" },
+    { "src": "/api/save", "methods": ["POST"], "dest": "/api/save" },
+    { "src": "/api/summaries/(?<user_id>[^/]+)", "methods": ["GET"], "dest": "/api/summaries/[user_id]?user_id=$user_id" },
+    { "src": "/api/summary/(?<id>[^/]+)", "methods": ["GET", "DELETE"], "dest": "/api/summary/[id]?id=$id" },
+    { "src": "/api/summary_english/(?<id>[^/]+)", "methods": ["GET"], "dest": "/api/summary_english/[id]?id=$id" }
+  ]
 }

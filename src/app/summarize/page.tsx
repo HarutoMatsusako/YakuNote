@@ -101,7 +101,14 @@ export default function Home() {
         });
 
         if (!response.ok) {
-          throw new Error("翻訳に失敗しました");
+          // レスポンスがJSONでない場合も考慮
+          try {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || "翻訳に失敗しました");
+          } catch (jsonError) {
+            // JSONパースエラーの場合はステータスコードとテキストを表示
+            throw new Error(`翻訳に失敗しました: ${response.status} ${response.statusText}`);
+          }
         }
 
         const data = await response.json();
@@ -141,8 +148,14 @@ export default function Home() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "テキスト抽出に失敗しました");
+        // レスポンスがJSONでない場合も考慮
+        try {
+          const errorData = await response.json();
+          throw new Error(errorData.detail || "テキスト抽出に失敗しました");
+        } catch (jsonError) {
+          // JSONパースエラーの場合はステータスコードとテキストを表示
+          throw new Error(`テキスト抽出に失敗しました: ${response.status} ${response.statusText}`);
+        }
       }
 
       const data = await response.json();
@@ -185,8 +198,14 @@ export default function Home() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "要約に失敗しました");
+        // レスポンスがJSONでない場合も考慮
+        try {
+          const errorData = await response.json();
+          throw new Error(errorData.detail || "要約に失敗しました");
+        } catch (jsonError) {
+          // JSONパースエラーの場合はステータスコードとテキストを表示
+          throw new Error(`要約に失敗しました: ${response.status} ${response.statusText}`);
+        }
       }
 
       const data = await response.json();
@@ -241,12 +260,18 @@ export default function Home() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error(
-          "保存APIからエラーレスポンスを受け取りました:",
-          errorData
-        );
-        throw new Error(errorData.detail || "保存に失敗しました");
+        // レスポンスがJSONでない場合も考慮
+        try {
+          const errorData = await response.json();
+          console.error(
+            "保存APIからエラーレスポンスを受け取りました:",
+            errorData
+          );
+          throw new Error(errorData.detail || "保存に失敗しました");
+        } catch (jsonError) {
+          // JSONパースエラーの場合はステータスコードとテキストを表示
+          throw new Error(`保存に失敗しました: ${response.status} ${response.statusText}`);
+        }
       }
 
       console.log("保存が成功しました");
