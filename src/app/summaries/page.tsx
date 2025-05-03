@@ -82,7 +82,7 @@ export default function SummariesPage() {
         } else {
           console.log("ユーザー情報が取得できませんでした");
         }
-      } catch (err) {
+      } catch (err: unknown) {
         console.error("認証エラー:", err);
       } finally {
         setLoading(false);

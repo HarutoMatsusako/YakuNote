@@ -66,7 +66,7 @@ export default function Home() {
           console.log('ユーザー情報が取得できませんでした');
         }
         
-      } catch (err) {
+      } catch (err: unknown) {
         console.error("認証エラー:", err);
       } finally {
         setLoading(false);
@@ -363,7 +363,7 @@ export default function Home() {
                 className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors font-medium text-sm"
                 id="language-toggle-button"
               >
-                {language === "ja" ? "🇺🇸 English" : "🇯🇵 Japnanese"}
+                {language === "ja" ? "🇺🇸 English" : "🇯🇵 Japanese"}
               </button>
               </div>
               <div className="bg-indigo-50 p-6 rounded-lg text-gray-800 whitespace-pre-wrap text-base border border-indigo-100">

@@ -93,8 +93,8 @@ export async function GET(request: NextRequest) {
       errorMessage = err.message;
     } else if (typeof err === 'string') {
       errorMessage = err;
-    } else if (err && typeof err === 'object' && 'message' in err && typeof err.message === 'string') {
-      errorMessage = err.message;
+    } else if (err && typeof err === 'object' && 'message' in (err as Record<string, unknown>) && typeof (err as Record<string, unknown>).message === 'string') {
+      errorMessage = (err as Record<string, string>).message;
     }
     
     return NextResponse.redirect(

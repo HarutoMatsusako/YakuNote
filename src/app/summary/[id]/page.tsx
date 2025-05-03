@@ -25,7 +25,7 @@ export default function SummaryDetailPage({
   const resolvedParams = use(params);
   const id = resolvedParams.id;
   const router = useRouter();
-  const [user, setUser] = useState<{id: string; email?: string} | null>(null);
+  const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState<SummaryDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -37,43 +37,50 @@ export default function SummaryDetailPage({
     const getUser = async () => {
       try {
         console.log("ユーザー情報を取得中...");
-        
+
         // テスト用にダミーユーザーを設定
         // setUser({
         //   id: "123e4567-e89b-12d3-a456-426614174000",
         //   email: "test@example.com",
         // });
-        
+
         // 本来のコード（テスト時はコメントアウト）
         // まずセッションを確認
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
+
         if (sessionError) {
-          console.error('セッション取得エラー:', sessionError);
+          console.error("セッション取得エラー:", sessionError);
           setLoading(false);
           return;
         }
-        
+
         if (!session) {
-          console.log('セッションがありません');
+          console.log("セッションがありません");
           setLoading(false);
           return; // セッションがない場合は処理を終了
         }
-        
-        console.log('セッション取得成功:', session);
-        
+
+        console.log("セッション取得成功:", session);
+
         // ユーザー情報を取得
-        const { data: { user }, error } = await supabase.auth.getUser();
-        
+        const {
+          data: { user },
+          error,
+        } = await supabase.auth.getUser();
+
         if (error) {
-          console.error('ユーザー取得エラー:', error);
-        } else if (user) { // userが存在する場合のみセット
-          console.log('ユーザー取得成功:', user);
+          console.error("ユーザー取得エラー:", error);
+        } else if (user) {
+          // userが存在する場合のみセット
+          console.log("ユーザー取得成功:", user);
           setUser(user);
         } else {
-          console.log('ユーザー情報が取得できませんでした');
+          console.log("ユーザー情報が取得できませんでした");
         }
-      } catch (err) {
+      } catch (err: unknown) {
         console.error("認証エラー:", err);
       } finally {
         setLoading(false);
@@ -89,14 +96,14 @@ export default function SummaryDetailPage({
 
   const fetchSummaryDetail = useCallback(async () => {
     if (!id) return;
-    
+
     // ユーザーがログインしていない場合は処理をスキップ
     if (!user) {
       console.log("ユーザーが未ログインのため、要約詳細を取得できません");
       setLoading(false);
       return;
     }
-    
+
     try {
       setError(null);
       setLoading(true);
@@ -112,7 +119,8 @@ export default function SummaryDetailPage({
       const data = await response.json();
       setSummary(data.summary);
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : '不明なエラーが発生しました';
+      const errorMessage =
+        err instanceof Error ? err.message : "不明なエラーが発生しました";
       setError(`エラー: ${errorMessage}`);
     } finally {
       setLoading(false);
@@ -131,14 +139,14 @@ export default function SummaryDetailPage({
 
   const deleteSummary = async () => {
     if (!id || !confirm("この要約を削除してもよろしいですか？")) return;
-    
+
     // ユーザーがログインしていない場合は処理をスキップ
     if (!user) {
       console.log("ユーザーが未ログインのため、要約を削除できません");
       setError("ログインが必要です");
       return;
     }
-    
+
     try {
       setIsDeleting(true);
       setError(null);
@@ -153,7 +161,8 @@ export default function SummaryDetailPage({
       setSuccess("要約が正常に削除されました");
       setTimeout(() => router.push("/summaries"), 1000);
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : '不明なエラーが発生しました';
+      const errorMessage =
+        err instanceof Error ? err.message : "不明なエラーが発生しました";
       setError(`エラー: ${errorMessage}`);
     } finally {
       setIsDeleting(false);
@@ -216,9 +225,7 @@ export default function SummaryDetailPage({
                   onClick={toggleLanguage}
                   className="px-3 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 transition-colors font-medium text-sm"
                 >
-                  {language === "ja"
-                    ? "🇺🇸 English"
-                    : "🇯🇵 Japanese"}
+                  {language === "ja" ? "🇺🇸 English" : "🇯🇵 Japanese"}
                 </button>
               </div>
 
@@ -229,7 +236,9 @@ export default function SummaryDetailPage({
             </div>
             {summary.url && (
               <div>
-                <h2 className="text-lg font-semibold text-gray-400 mb-2">元のURL</h2>
+                <h2 className="text-lg font-semibold text-gray-400 mb-2">
+                  元のURL
+                </h2>
                 <div className="bg-gray-50 p-4 rounded-md">
                   <a
                     href={summary.url}
@@ -243,13 +252,17 @@ export default function SummaryDetailPage({
               </div>
             )}
             <div>
-              <h2 className="text-lg font-semibold text-gray-400 mb-2">作成日時</h2>
+              <h2 className="text-lg font-semibold text-gray-400 mb-2">
+                作成日時
+              </h2>
               <div className="bg-gray-50 p-4 rounded-md text-gray-400">
                 {formatDate(summary.created_at)}
               </div>
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-400 mb-2">元のテキスト</h2>
+              <h2 className="text-lg font-semibold text-gray-400 mb-2">
+                元のテキスト
+              </h2>
               <div className="bg-gray-50 p-4 rounded-md max-h-96 overflow-y-auto text-sm text-gray-400">
                 {summary.original_text}
               </div>

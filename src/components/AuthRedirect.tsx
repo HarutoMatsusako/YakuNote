@@ -41,7 +41,7 @@ export default function AuthRedirect({ requiredAuth, redirectTo }: AuthRedirectP
           console.log(`リダイレクト: ${redirectTo}`);
           router.push(redirectTo);
         }
-      } catch (err) {
+      } catch (err: unknown) {
         console.error('認証チェックエラー:', err);
         // 例外が発生した場合、安全のためにログイン状態がないと仮定
         if (requiredAuth) {
