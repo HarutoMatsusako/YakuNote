@@ -138,6 +138,8 @@ export default function Home() {
     setIsExtracting(true);
 
     try {
+      console.log("テキスト抽出開始:", url);
+      
       // 完全なURLパスを使用
       const response = await fetch(`/api/extract`, {
         method: "POST",
@@ -151,7 +153,7 @@ export default function Home() {
         // レスポンスがJSONでない場合も考慮
         try {
           const errorData = await response.json();
-          throw new Error(errorData.detail || "テキスト抽出に失敗しました");
+          throw new Error(errorData.detail || errorData.error || "テキスト抽出に失敗しました");
         } catch (jsonError) {
           // JSONパースエラーの場合はステータスコードとテキストを表示
           throw new Error(`テキスト抽出に失敗しました: ${response.status} ${response.statusText}`);
@@ -159,28 +161,50 @@ export default function Home() {
       }
 
       const data = await response.json();
+      
+      // 抽出されたテキストが存在するか確認
+      if (!data.text || data.text.trim() === "") {
+        console.error("テキスト抽出エラー: 空のテキストが返されました");
+        throw new Error("テキストの抽出に失敗しました。空のテキストが返されました。");
+      }
+      
+      // 抽出されたテキストをログに出力
+      console.log("テキスト抽出完了");
+      console.log("抽出されたテキスト長:", data.text.length);
+      console.log("抽出されたテキスト（先頭100文字）:", data.text.substring(0, 100));
+      
       setExtractedText(data.text);
 
       // テキストを抽出したら自動的に要約を開始
-      console.log("テキスト抽出完了、要約を開始します");
+      console.log("要約処理を開始します");
       summarizeText(data.text);
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "不明なエラーが発生しました";
+      console.error("テキスト抽出エラー:", errorMessage);
       setError(`エラー: ${errorMessage}`);
       setIsExtracting(false);
+      setIsSummarizing(false);
     }
   };
 
   // テキストを要約する関数
   const summarizeText = async (text: string) => {
-    if (!text) {
+    // テキストが空かどうかを厳密にチェック
+    if (!text || text.trim() === "") {
+      console.error("要約エラー: 要約するテキストがありません");
       setError("要約するテキストがありません");
       setIsExtracting(false);
+      setIsSummarizing(false);
       return;
     }
 
     setIsSummarizing(true);
+    
+    // 要約するテキストをログに出力
+    console.log("要約処理開始");
+    console.log("要約するテキスト長:", text.length);
+    console.log("要約するテキスト（先頭100文字）:", text.substring(0, 100));
 
     try {
       // 言語に応じてエンドポイントを選択
@@ -209,10 +233,22 @@ export default function Home() {
       }
 
       const data = await response.json();
-      setSummary(data.summary || "要約結果が空です");
+      
+      // 要約結果が空でないか確認
+      if (!data.summary || data.summary.trim() === "") {
+        console.error("要約エラー: 空の要約結果が返されました");
+        throw new Error("要約結果が空です。要約に失敗しました。");
+      }
+      
+      console.log("要約完了");
+      console.log("要約結果長:", data.summary.length);
+      console.log("要約結果（先頭100文字）:", data.summary.substring(0, 100));
+      
+      setSummary(data.summary);
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "不明なエラーが発生しました";
+      console.error("要約エラー:", errorMessage);
       setError(`エラー: ${errorMessage}`);
     } finally {
       setIsExtracting(false);
