@@ -108,7 +108,8 @@ export default function SummaryDetailPage({
       setLoading(true);
       const endpoint =
         language === "ja" ? `/summary/${id}` : `/summary_english/${id}`;
-      const response = await fetch(`${API_BASE_URL}${endpoint}`);
+      // 完全なURLパスを使用
+      const response = await fetch(`/api${endpoint}`);
       if (!response.ok) {
         if (response.status === 404)
           throw new Error("要約が見つかりませんでした");
@@ -150,7 +151,8 @@ export default function SummaryDetailPage({
       setIsDeleting(true);
       setError(null);
       setSuccess(null);
-      const response = await fetch(`${API_BASE_URL}/summary/${id}`, {
+      // 完全なURLパスを使用
+      const response = await fetch(`/api/summary/${id}`, {
         method: "DELETE",
       });
       if (!response.ok) {

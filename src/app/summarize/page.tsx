@@ -90,7 +90,8 @@ export default function Home() {
 
     if (summary) {
       try {
-        const response = await fetch(`${API_BASE_URL}/translate`, {
+        // 完全なURLパスを使用
+        const response = await fetch(`/api/translate`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -130,7 +131,8 @@ export default function Home() {
     setIsExtracting(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/extract`, {
+      // 完全なURLパスを使用
+      const response = await fetch(`/api/extract`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -173,7 +175,8 @@ export default function Home() {
       console.log("🌐 現在の言語:", language);
       console.log("🔗 使用するエンドポイント:", endpoint);
 
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      // 完全なURLパスを使用
+      const response = await fetch(`/api${endpoint}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -223,7 +226,8 @@ export default function Home() {
 
     try {
       console.log("保存APIを呼び出します");
-      const response = await fetch(`${API_BASE_URL}/save`, {
+      // 完全なURLパスを使用
+      const response = await fetch(`/api/save`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -104,8 +104,9 @@ export default function SummariesPage() {
       setError(null);
       setLoading(true);
 
+      // 完全なURLパスを使用
       const response = await fetch(
-        `${API_BASE_URL}/summaries/${user.id}?skip=${skip}&limit=${limit}`
+        `/api/summaries/${user.id}?skip=${skip}&limit=${limit}`
       );
 
       if (!response.ok) {
