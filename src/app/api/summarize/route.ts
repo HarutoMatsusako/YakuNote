@@ -27,26 +27,52 @@ export async function OPTIONS(req: NextRequest) {
 // OpenAIクライアントの初期化（実行時のみ）
 let openaiClient: OpenAI | null = null;
 
+// 環境変数のデバッグ強化
+const getOpenAIApiKey = () => {
+  // 可能性のある環境変数名をすべて試す
+  const possibleKeys = [
+    'OPENAI_API_KEY',
+    'NEXT_PUBLIC_OPENAI_API_KEY',
+    'OPENAI_KEY',
+    'NEXT_PUBLIC_OPENAI_KEY'
+  ];
+  
+  console.log('Summarize API: 環境変数チェック:');
+  for (const key of possibleKeys) {
+    const value = process.env[key];
+    if (value) {
+      console.log(`Summarize API: - ${key}: 存在します (長さ: ${value.length}文字)`);
+      return value;
+    } else {
+      console.log(`Summarize API: - ${key}: 存在しません`);
+    }
+  }
+  
+  // すべての環境変数を出力（デバッグ用）
+  console.log('Summarize API: すべての環境変数キー:');
+  Object.keys(process.env).forEach(key => {
+    // セキュリティのため、キー名のみを出力
+    console.log(`Summarize API: - ${key}`);
+  });
+  
+  return null;
+};
+
 const getOpenAIClient = () => {
   if (!openaiClient) {
-    const apiKey = process.env.OPENAI_API_KEY;
-    
-    // 環境変数のデバッグ（APIキーの最初と最後の数文字のみログ出力）
-    if (apiKey) {
-      const firstChars = apiKey.substring(0, 4);
-      const lastChars = apiKey.substring(apiKey.length - 4);
-      console.log(`Summarize API: APIキー確認 (${firstChars}...${lastChars})`);
-    } else {
-      console.error('Summarize API: APIキーが設定されていません');
-    }
+    const apiKey = getOpenAIApiKey();
     
     if (!apiKey) {
+      console.error('Summarize API: OpenAIクライアント初期化エラー: APIキーが設定されていません');
       throw new Error('OpenAI API key is not set');
     }
+    
+    console.log('Summarize API: OpenAIクライアント初期化: APIキー確認OK');
     
     // タイムアウトとリトライ設定を追加
     openaiClient = new OpenAI({
       apiKey,
+      baseURL: 'https://api.openai.com/v1',
       timeout: 60000, // 60秒のタイムアウト
       maxRetries: 3   // 最大3回リトライ
     });
@@ -114,34 +140,132 @@ export async function POST(request: NextRequest) {
     // OpenAI APIを使用して要約
     console.log('Summarize API: OpenAI API呼び出し開始');
     let response;
+    
+    // APIキーを取得
+    const apiKey = getOpenAIApiKey();
+    if (!apiKey) {
+      throw new Error('OpenAI API key is not set');
+    }
+    
     try {
+      // リクエストの詳細情報をログに出力
+      console.log('Summarize API: OpenAI APIリクエスト詳細:', {
+        model: "gpt-3.5-turbo-0125",
+        messages_count: 2,
+        system_content_length: "以下の文章を要約してください。簡潔にまとめてください。".length,
+        user_content_length: truncated_text.length,
+        max_tokens: 1000,
+        temperature: 0.7
+      });
+      
       // 最初に新しいモデルを試す
       console.log('Summarize API: 新しいモデル(gpt-3.5-turbo-0125)で試行');
-      response = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo-0125", // より新しいバージョンを指定
-        messages: [
-          { role: "system", content: "以下の文章を要約してください。簡潔にまとめてください。" },
-          { role: "user", content: truncated_text }
-        ],
-        max_tokens: 1000, // トークン数を制限
-        temperature: 0.7  // 創造性の度合い
+      
+      // 直接fetchを使用してレスポンスを詳細にチェック
+      const fetchResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: "gpt-3.5-turbo-0125",
+          messages: [
+            { role: "system", content: "以下の文章を要約してください。簡潔にまとめてください。" },
+            { role: "user", content: truncated_text }
+          ],
+          max_tokens: 1000,
+          temperature: 0.7
+        })
       });
+      
+      // レスポンスの詳細情報をログに出力
+      console.log('Summarize API: OpenAI APIレスポンス状態:', {
+        status: fetchResponse.status,
+        statusText: fetchResponse.statusText,
+        ok: fetchResponse.ok
+      });
+      
+      if (!fetchResponse.ok) {
+        const errorBody = await fetchResponse.text();
+        console.error('Summarize API: OpenAI APIエラー詳細:', {
+          status: fetchResponse.status,
+          statusText: fetchResponse.statusText,
+          body: errorBody
+        });
+        throw new Error(`OpenAI API error: ${fetchResponse.status} ${fetchResponse.statusText}`);
+      }
+      
+      const jsonResponse = await fetchResponse.json();
+      response = jsonResponse;
+      
+      // レスポンスの詳細情報をログに出力
+      console.log('Summarize API: OpenAI APIレスポンス詳細:', {
+        model: response.model,
+        choices_count: response.choices?.length || 0,
+        content_length: response.choices?.[0]?.message?.content?.length || 0,
+        finish_reason: response.choices?.[0]?.finish_reason
+      });
+      
       console.log('Summarize API: 新しいモデルでの呼び出し成功');
     } catch (modelError) {
       console.error('Summarize API: 新しいモデルでエラー発生、安定版にフォールバック', modelError);
       
-      // 安定版モデルにフォールバック
-      console.log('Summarize API: 安定版モデル(gpt-3.5-turbo)にフォールバック');
-      response = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo", // 安定版モデル
-        messages: [
-          { role: "system", content: "以下の文章を要約してください。簡潔にまとめてください。" },
-          { role: "user", content: truncated_text }
-        ],
-        max_tokens: 1000,
-        temperature: 0.7
-      });
-      console.log('Summarize API: 安定版モデルでの呼び出し成功');
+      try {
+        // 安定版モデルにフォールバック
+        console.log('Summarize API: 安定版モデル(gpt-3.5-turbo)にフォールバック');
+        
+        // 直接fetchを使用してレスポンスを詳細にチェック
+        const fetchResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: "gpt-3.5-turbo",
+            messages: [
+              { role: "system", content: "以下の文章を要約してください。簡潔にまとめてください。" },
+              { role: "user", content: truncated_text }
+            ],
+            max_tokens: 1000,
+            temperature: 0.7
+          })
+        });
+        
+        // レスポンスの詳細情報をログに出力
+        console.log('Summarize API: フォールバックAPIレスポンス状態:', {
+          status: fetchResponse.status,
+          statusText: fetchResponse.statusText,
+          ok: fetchResponse.ok
+        });
+        
+        if (!fetchResponse.ok) {
+          const errorBody = await fetchResponse.text();
+          console.error('Summarize API: フォールバックAPIエラー詳細:', {
+            status: fetchResponse.status,
+            statusText: fetchResponse.statusText,
+            body: errorBody
+          });
+          throw new Error(`OpenAI API error: ${fetchResponse.status} ${fetchResponse.statusText}`);
+        }
+        
+        const jsonResponse = await fetchResponse.json();
+        response = jsonResponse;
+        
+        // レスポンスの詳細情報をログに出力
+        console.log('Summarize API: フォールバックAPIレスポンス詳細:', {
+          model: response.model,
+          choices_count: response.choices?.length || 0,
+          content_length: response.choices?.[0]?.message?.content?.length || 0,
+          finish_reason: response.choices?.[0]?.finish_reason
+        });
+        
+        console.log('Summarize API: 安定版モデルでの呼び出し成功');
+      } catch (fallbackError) {
+        console.error('Summarize API: フォールバックモデルでもエラー発生', fallbackError);
+        throw fallbackError; // 再スロー
+      }
     }
     console.log('Summarize API: OpenAI API呼び出し完了');
 
