@@ -49,7 +49,7 @@ export default function Home() {
         if (!session) {
           console.log('セッションがありません');
           setLoading(false);
-          return;
+          return; // セッションがない場合は処理を終了
         }
         
         console.log('セッション取得成功:', session);
@@ -59,9 +59,11 @@ export default function Home() {
         
         if (error) {
           console.error('ユーザー取得エラー:', error);
-        } else {
+        } else if (user) { // userが存在する場合のみセット
           console.log('ユーザー取得成功:', user);
           setUser(user);
+        } else {
+          console.log('ユーザー情報が取得できませんでした');
         }
         
       } catch (err) {

@@ -44,7 +44,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
     
-    console.log('ログイン成功:', { user: data.user?.id });
+    if (!data.user) {
+      console.error('ログイン成功したが、ユーザー情報がありません');
+      return NextResponse.json({ 
+        error: 'ユーザー情報の取得に失敗しました' 
+      }, { status: 400 });
+    }
+    
+    console.log('ログイン成功:', { user: data.user.id });
+    
+    // セッションが正常に作成されたか確認
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError || !session) {
+      console.error('セッション確認エラー:', sessionError);
+      return NextResponse.json({ 
+        error: 'セッションの検証に失敗しました' 
+      }, { status: 400 });
+    }
     
     return NextResponse.json({ data });
   } catch (err: unknown) {

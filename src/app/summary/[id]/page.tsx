@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AuthRedirect from "@/components/AuthRedirect";
+import { supabase } from "@/lib/supabase";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001";
 
 interface SummaryDetail {
@@ -24,7 +25,7 @@ export default function SummaryDetailPage({
   const resolvedParams = use(params as any) as { id: string };
   const id = resolvedParams.id;
   const router = useRouter();
-  const [user, setUser] = useState<{id: string; email: string} | null>(null);
+  const [user, setUser] = useState<{id: string; email?: string} | null>(null);
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState<SummaryDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -36,10 +37,42 @@ export default function SummaryDetailPage({
     const getUser = async () => {
       try {
         console.log("ユーザー情報を取得中...");
-        setUser({
-          id: "123e4567-e89b-12d3-a456-426614174000",
-          email: "test@example.com",
-        });
+        
+        // テスト用にダミーユーザーを設定
+        // setUser({
+        //   id: "123e4567-e89b-12d3-a456-426614174000",
+        //   email: "test@example.com",
+        // });
+        
+        // 本来のコード（テスト時はコメントアウト）
+        // まずセッションを確認
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('セッション取得エラー:', sessionError);
+          setLoading(false);
+          return;
+        }
+        
+        if (!session) {
+          console.log('セッションがありません');
+          setLoading(false);
+          return; // セッションがない場合は処理を終了
+        }
+        
+        console.log('セッション取得成功:', session);
+        
+        // ユーザー情報を取得
+        const { data: { user }, error } = await supabase.auth.getUser();
+        
+        if (error) {
+          console.error('ユーザー取得エラー:', error);
+        } else if (user) { // userが存在する場合のみセット
+          console.log('ユーザー取得成功:', user);
+          setUser(user);
+        } else {
+          console.log('ユーザー情報が取得できませんでした');
+        }
       } catch (err) {
         console.error("認証エラー:", err);
       } finally {
@@ -56,6 +89,14 @@ export default function SummaryDetailPage({
 
   const fetchSummaryDetail = useCallback(async () => {
     if (!id) return;
+    
+    // ユーザーがログインしていない場合は処理をスキップ
+    if (!user) {
+      console.log("ユーザーが未ログインのため、要約詳細を取得できません");
+      setLoading(false);
+      return;
+    }
+    
     try {
       setError(null);
       setLoading(true);
@@ -76,18 +117,26 @@ export default function SummaryDetailPage({
     } finally {
       setLoading(false);
     }
-  }, [id, language]);
+  }, [id, language, user]);
 
   useEffect(() => {
-    if (id) fetchSummaryDetail();
-  }, [id, fetchSummaryDetail]);
+    if (id && user) fetchSummaryDetail();
+  }, [id, user, fetchSummaryDetail]);
 
   useEffect(() => {
-    if (id) fetchSummaryDetail();
-  }, [language, fetchSummaryDetail]);
+    if (id && user) fetchSummaryDetail();
+  }, [language, id, user, fetchSummaryDetail]);
 
   const deleteSummary = async () => {
     if (!id || !confirm("この要約を削除してもよろしいですか？")) return;
+    
+    // ユーザーがログインしていない場合は処理をスキップ
+    if (!user) {
+      console.log("ユーザーが未ログインのため、要約を削除できません");
+      setError("ログインが必要です");
+      return;
+    }
+    
     try {
       setIsDeleting(true);
       setError(null);

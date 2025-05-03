@@ -63,7 +63,7 @@ export default function SummariesPage() {
         if (!session) {
           console.log("セッションがありません");
           setLoading(false);
-          return;
+          return; // セッションがない場合は処理を終了
         }
 
         console.log("セッション取得成功:", session);
@@ -76,9 +76,11 @@ export default function SummariesPage() {
 
         if (error) {
           console.error("ユーザー取得エラー:", error);
-        } else {
+        } else if (user) { // userが存在する場合のみセット
           console.log("ユーザー取得成功:", user);
           setUser(user);
+        } else {
+          console.log("ユーザー情報が取得できませんでした");
         }
       } catch (err) {
         console.error("認証エラー:", err);
@@ -92,7 +94,11 @@ export default function SummariesPage() {
 
   // 要約一覧を取得する関数
   const fetchSummaries = useCallback(async (skip = 0, limit = 10) => {
-    if (!user) return;
+    if (!user) {
+      console.log("ユーザーが未ログインのため、要約一覧を取得できません");
+      setLoading(false);
+      return;
+    }
 
     try {
       setError(null);

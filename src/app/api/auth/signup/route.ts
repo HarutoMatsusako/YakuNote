@@ -47,7 +47,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
     
-    console.log('サインアップ成功:', data);
+    if (!data.user) {
+      console.error('サインアップ成功したが、ユーザー情報がありません');
+      return NextResponse.json({ 
+        error: 'ユーザー情報の取得に失敗しました' 
+      }, { status: 400 });
+    }
+    
+    console.log('サインアップ成功:', { user: data.user.id });
+    
+    // メール確認が必要な場合は、その旨をクライアントに通知
+    if (data.user.identities && data.user.identities.length === 0) {
+      return NextResponse.json({ 
+        message: 'メールアドレスの確認が必要です。メールをご確認ください。',
+        data 
+      });
+    }
     
     return NextResponse.json({ data });
   } catch (err: unknown) {

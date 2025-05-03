@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 
 type AuthRedirectProps = {
   requiredAuth: boolean;
@@ -17,15 +18,20 @@ export default function AuthRedirect({ requiredAuth, redirectTo }: AuthRedirectP
         console.log('認証状態を確認中...');
         
         // テスト用に認証チェックをスキップ
-        console.log('テスト用に認証チェックをスキップします');
+        // console.log('テスト用に認証チェックをスキップします');
         
-        // 本来のコード（テスト時はコメントアウト）
-        /*
+        // 本来のコード
         // セッションを取得
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('セッション取得エラー:', error);
+          // エラーが発生した場合、安全のためにログイン状態がないと仮定
+          if (requiredAuth) {
+            console.log(`認証エラーのためリダイレクト: ${redirectTo}`);
+            router.push(redirectTo);
+          }
+          return;
         }
         
         console.log('セッション状態:', session ? '認証済み' : '未認証');
@@ -35,9 +41,13 @@ export default function AuthRedirect({ requiredAuth, redirectTo }: AuthRedirectP
           console.log(`リダイレクト: ${redirectTo}`);
           router.push(redirectTo);
         }
-        */
       } catch (err) {
         console.error('認証チェックエラー:', err);
+        // 例外が発生した場合、安全のためにログイン状態がないと仮定
+        if (requiredAuth) {
+          console.log(`認証チェックエラーのためリダイレクト: ${redirectTo}`);
+          router.push(redirectTo);
+        }
       }
     };
 

@@ -60,6 +60,28 @@ export async function GET(request: NextRequest) {
     
     console.log('セッション交換成功');
     
+    // セッションが正常に作成されたか確認
+    const { data: { session }, error: getSessionError } = await supabase.auth.getSession();
+    
+    if (getSessionError || !session) {
+      console.error('セッション確認エラー:', getSessionError);
+      return NextResponse.redirect(
+        new URL(`/login?error=session_verification_error`, request.url)
+      );
+    }
+    
+    // ユーザー情報を確認
+    const { data: { user }, error: getUserError } = await supabase.auth.getUser();
+    
+    if (getUserError || !user) {
+      console.error('ユーザー情報取得エラー:', getUserError);
+      return NextResponse.redirect(
+        new URL(`/login?error=user_verification_error`, request.url)
+      );
+    }
+    
+    console.log('ユーザー情報確認成功:', user.id);
+    
     // ログイン成功後のリダイレクト先
     return NextResponse.redirect(new URL('/summary', request.url));
   } catch (err: unknown) {
