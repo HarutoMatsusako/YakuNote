@@ -5,13 +5,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
-
 // バックエンドAPIのベースURL
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001";
+const API_BASE_URL = "/api";
 
 export default function Home() {
   const router = useRouter();
-  const [user, setUser] = useState<{id: string; email?: string} | null>(null);
+  const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [url, setUrl] = useState("");
   const [extractedText, setExtractedText] = useState("");
@@ -36,36 +35,42 @@ export default function Home() {
         // });
 
         // 本来のコード（テスト時はコメントアウト）
-        
+
         // まずセッションを確認
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
+
         if (sessionError) {
-          console.error('セッション取得エラー:', sessionError);
+          console.error("セッション取得エラー:", sessionError);
           setLoading(false);
           return;
         }
-        
+
         if (!session) {
-          console.log('セッションがありません');
+          console.log("セッションがありません");
           setLoading(false);
           return; // セッションがない場合は処理を終了
         }
-        
-        console.log('セッション取得成功:', session);
-        
+
+        console.log("セッション取得成功:", session);
+
         // ユーザー情報を取得
-        const { data: { user }, error } = await supabase.auth.getUser();
-        
+        const {
+          data: { user },
+          error,
+        } = await supabase.auth.getUser();
+
         if (error) {
-          console.error('ユーザー取得エラー:', error);
-        } else if (user) { // userが存在する場合のみセット
-          console.log('ユーザー取得成功:', user);
+          console.error("ユーザー取得エラー:", error);
+        } else if (user) {
+          // userが存在する場合のみセット
+          console.log("ユーザー取得成功:", user);
           setUser(user);
         } else {
-          console.log('ユーザー情報が取得できませんでした');
+          console.log("ユーザー情報が取得できませんでした");
         }
-        
       } catch (err: unknown) {
         console.error("認証エラー:", err);
       } finally {
@@ -80,7 +85,7 @@ export default function Home() {
   const toggleLanguage = async () => {
     const newLang = language === "ja" ? "en" : "ja";
     setLanguage(newLang);
-  
+
     if (summary) {
       try {
         const response = await fetch(`${API_BASE_URL}/translate`, {
@@ -91,20 +96,21 @@ export default function Home() {
             targetLang: newLang,
           }),
         });
-  
+
         if (!response.ok) {
           throw new Error("翻訳に失敗しました");
         }
-  
+
         const data = await response.json();
         setSummary(data.translatedText);
       } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : '不明なエラーが発生しました';
+        const errorMessage =
+          error instanceof Error ? error.message : "不明なエラーが発生しました";
         console.error("翻訳エラー:", errorMessage);
       }
     }
   };
-  
+
   // 言語が変更されたときのログ出力（デバッグ用）
   useEffect(() => {
     console.log("言語が変更されました:", language);
@@ -142,7 +148,8 @@ export default function Home() {
       console.log("テキスト抽出完了、要約を開始します");
       summarizeText(data.text);
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : '不明なエラーが発生しました';
+      const errorMessage =
+        err instanceof Error ? err.message : "不明なエラーが発生しました";
       setError(`エラー: ${errorMessage}`);
       setIsExtracting(false);
     }
@@ -180,7 +187,8 @@ export default function Home() {
       const data = await response.json();
       setSummary(data.summary || "要約結果が空です");
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : '不明なエラーが発生しました';
+      const errorMessage =
+        err instanceof Error ? err.message : "不明なエラーが発生しました";
       setError(`エラー: ${errorMessage}`);
     } finally {
       setIsExtracting(false);
@@ -239,7 +247,8 @@ export default function Home() {
       setSuccess("要約が正常に保存されました");
     } catch (err: unknown) {
       console.error("保存中にエラーが発生しました:", err);
-      const errorMessage = err instanceof Error ? err.message : '不明なエラーが発生しました';
+      const errorMessage =
+        err instanceof Error ? err.message : "不明なエラーが発生しました";
       setError(`エラー: ${errorMessage}`);
     } finally {
       setIsSaving(false);
@@ -282,7 +291,7 @@ export default function Home() {
                 <Link
                   href="/summaries"
                   className="px-3 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 disabled:bg-indigo-300 transition-colors font-medium text-sm"
-                  >
+                >
                   保存一覧
                 </Link>
               </div>
@@ -353,18 +362,18 @@ export default function Home() {
                 要約結果
               </h2>
               <div className="flex justify-end mb-0.5">
-              <button
-                onClick={() => {
-                  console.log(
-                    "言語切り替えボタンがクリックされました（インラインハンドラー）"
-                  );
-                  toggleLanguage();
-                }}
-                className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors font-medium text-sm"
-                id="language-toggle-button"
-              >
-                {language === "ja" ? "🇺🇸 English" : "🇯🇵 Japanese"}
-              </button>
+                <button
+                  onClick={() => {
+                    console.log(
+                      "言語切り替えボタンがクリックされました（インラインハンドラー）"
+                    );
+                    toggleLanguage();
+                  }}
+                  className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors font-medium text-sm"
+                  id="language-toggle-button"
+                >
+                  {language === "ja" ? "🇺🇸 English" : "🇯🇵 Japanese"}
+                </button>
               </div>
               <div className="bg-indigo-50 p-6 rounded-lg text-gray-800 whitespace-pre-wrap text-base border border-indigo-100">
                 {summary}

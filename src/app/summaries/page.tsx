@@ -6,7 +6,7 @@ import AuthRedirect from "@/components/AuthRedirect";
 import { supabase } from "@/lib/supabase";
 
 // バックエンドAPIのベースURL
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001";
+const API_BASE_URL = "/api";
 
 // 要約の型定義
 interface Summary {
