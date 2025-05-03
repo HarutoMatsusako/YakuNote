@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, use } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AuthRedirect from "@/components/AuthRedirect";
@@ -21,9 +21,8 @@ export default function SummaryDetailPage({
 }: {
   params: { id: string };
 }) {
-  // Next.js 15.2.4では、paramsはPromiseになっているため、React.use()でラップする
-  const resolvedParams = use(params);
-  const id = resolvedParams.id;
+  // paramsからidを直接取得
+  const id = params.id;
   const router = useRouter();
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
   const [loading, setLoading] = useState(true);

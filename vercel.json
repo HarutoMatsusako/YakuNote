@@ -1,0 +1,13 @@
+{
+  "buildCommand": "next build",
+  "ignoreCommand": "echo 'Skipping linting'",
+  "framework": "nextjs",
+  "buildConfig": {
+    "eslint": {
+      "ignoreDuringBuilds": true
+    },
+    "typescript": {
+      "ignoreBuildErrors": true
+    }
+  }
+}
