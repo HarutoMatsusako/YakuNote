@@ -31,6 +31,15 @@ const getOpenAIClient = () => {
   if (!openaiClient) {
     const apiKey = process.env.OPENAI_API_KEY;
     
+    // 環境変数のデバッグ（APIキーの最初と最後の数文字のみログ出力）
+    if (apiKey) {
+      const firstChars = apiKey.substring(0, 4);
+      const lastChars = apiKey.substring(apiKey.length - 4);
+      console.log(`Summarize API: APIキー確認 (${firstChars}...${lastChars})`);
+    } else {
+      console.error('Summarize API: APIキーが設定されていません');
+    }
+    
     if (!apiKey) {
       throw new Error('OpenAI API key is not set');
     }
@@ -47,10 +56,36 @@ const getOpenAIClient = () => {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    console.log('Summarize API: リクエスト受信');
+    
+    // リクエストボディをデバッグ
+    const requestText = await request.text();
+    console.log('Summarize API: リクエスト本文', requestText);
+    
+    // JSONとして解析
+    let body;
+    try {
+      body = JSON.parse(requestText);
+      console.log('Summarize API: JSONパース成功', body);
+    } catch (parseError) {
+      console.error('Summarize API: JSONパースエラー', parseError);
+      return NextResponse.json(
+        { detail: "リクエストボディのJSONパースに失敗しました" },
+        { 
+          status: 400,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          }
+        }
+      );
+    }
+    
     const { text } = body;
 
     if (!text) {
+      console.error('Summarize API: テキストが指定されていません');
       return NextResponse.json(
         { detail: "テキストが指定されていません" },
         { 
@@ -76,17 +111,38 @@ export async function POST(request: NextRequest) {
     // OpenAIクライアントを取得
     const openai = getOpenAIClient();
     
-    // OpenAI APIを使用して要約（より新しいモデルバージョンを使用）
+    // OpenAI APIを使用して要約
     console.log('Summarize API: OpenAI API呼び出し開始');
-    const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo-0125", // より新しいバージョンを指定
-      messages: [
-        { role: "system", content: "以下の文章を要約してください。簡潔にまとめてください。" },
-        { role: "user", content: truncated_text }
-      ],
-      max_tokens: 1000, // トークン数を制限
-      temperature: 0.7  // 創造性の度合い
-    });
+    let response;
+    try {
+      // 最初に新しいモデルを試す
+      console.log('Summarize API: 新しいモデル(gpt-3.5-turbo-0125)で試行');
+      response = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo-0125", // より新しいバージョンを指定
+        messages: [
+          { role: "system", content: "以下の文章を要約してください。簡潔にまとめてください。" },
+          { role: "user", content: truncated_text }
+        ],
+        max_tokens: 1000, // トークン数を制限
+        temperature: 0.7  // 創造性の度合い
+      });
+      console.log('Summarize API: 新しいモデルでの呼び出し成功');
+    } catch (modelError) {
+      console.error('Summarize API: 新しいモデルでエラー発生、安定版にフォールバック', modelError);
+      
+      // 安定版モデルにフォールバック
+      console.log('Summarize API: 安定版モデル(gpt-3.5-turbo)にフォールバック');
+      response = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo", // 安定版モデル
+        messages: [
+          { role: "system", content: "以下の文章を要約してください。簡潔にまとめてください。" },
+          { role: "user", content: truncated_text }
+        ],
+        max_tokens: 1000,
+        temperature: 0.7
+      });
+      console.log('Summarize API: 安定版モデルでの呼び出し成功');
+    }
     console.log('Summarize API: OpenAI API呼び出し完了');
 
     let summary = response.choices[0].message.content;
