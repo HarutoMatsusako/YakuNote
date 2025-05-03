@@ -6,6 +6,8 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 // バックエンドAPIのベースURL
+// 環境変数NEXT_PUBLIC_API_URLが設定されている場合はそれを使用し、
+// 設定されていない場合は/apiを使用する
 const API_BASE_URL = "/api";
 
 export default function Home() {
