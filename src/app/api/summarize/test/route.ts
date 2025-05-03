@@ -24,31 +24,41 @@ export async function OPTIONS(req: NextRequest) {
   });
 }
 
-// 環境変数のデバッグ
-const debugEnvironmentVariables = () => {
-  console.log('Test API: 環境変数一覧:');
-  Object.keys(process.env).forEach(key => {
-    if (key.includes('OPENAI') || key.includes('API')) {
-      console.log(`Test API: - ${key}: ${key === 'OPENAI_API_KEY' ? '存在します' : '存在しません'}`);
+// 環境変数のデバッグ強化
+const getOpenAIApiKey = () => {
+  // 可能性のある環境変数名をすべて試す
+  const possibleKeys = [
+    'OPENAI_API_KEY',
+    'NEXT_PUBLIC_OPENAI_API_KEY',
+    'OPENAI_KEY',
+    'NEXT_PUBLIC_OPENAI_KEY'
+  ];
+  
+  console.log('Test API: 環境変数チェック:');
+  for (const key of possibleKeys) {
+    const value = process.env[key];
+    if (value) {
+      console.log(`Test API: - ${key}: 存在します (長さ: ${value.length}文字)`);
+      return value;
+    } else {
+      console.log(`Test API: - ${key}: 存在しません`);
     }
-  });
-
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (apiKey) {
-    const firstChars = apiKey.substring(0, 4);
-    const lastChars = apiKey.substring(apiKey.length - 4);
-    console.log(`Test API: APIキー確認: ${firstChars}...${lastChars} (長さ: ${apiKey.length}文字)`);
-    return apiKey;
-  } else {
-    console.error('Test API: APIキーが設定されていません');
-    return null;
   }
+  
+  // すべての環境変数を出力（デバッグ用）
+  console.log('Test API: すべての環境変数キー:');
+  Object.keys(process.env).forEach(key => {
+    // セキュリティのため、キー名のみを出力
+    console.log(`Test API: - ${key}`);
+  });
+  
+  return null;
 };
 
 // OpenAIクライアントの初期化
 const getOpenAIClient = () => {
   try {
-    const apiKey = debugEnvironmentVariables();
+    const apiKey = getOpenAIApiKey();
     
     if (!apiKey) {
       console.error('Test API: OpenAIクライアント初期化エラー: APIキーが設定されていません');
