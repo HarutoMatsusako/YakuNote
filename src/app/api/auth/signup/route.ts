@@ -67,7 +67,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ data });
   } catch (err: unknown) {
     console.error('APIルートエラー:', err);
-    const errorMessage = err instanceof Error ? err.message : '不明なエラーが発生しました';
+    
+    // 型ガードを使用してエラーメッセージを安全に取得
+    let errorMessage = '不明なエラーが発生しました';
+    if (err instanceof Error) {
+      errorMessage = err.message;
+    } else if (typeof err === 'string') {
+      errorMessage = err;
+    } else if (err && typeof err === 'object' && 'message' in err && typeof err.message === 'string') {
+      errorMessage = err.message;
+    }
+    
     return NextResponse.json({ 
       error: `エラーが発生しました: ${errorMessage}` 
     }, { status: 500 });

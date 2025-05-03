@@ -86,7 +86,17 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/summary', request.url));
   } catch (err: unknown) {
     console.error('コールバック処理エラー:', err);
-    const errorMessage = err instanceof Error ? err.message : '不明なエラーが発生しました';
+    
+    // 型ガードを使用してエラーメッセージを安全に取得
+    let errorMessage = '不明なエラーが発生しました';
+    if (err instanceof Error) {
+      errorMessage = err.message;
+    } else if (typeof err === 'string') {
+      errorMessage = err;
+    } else if (err && typeof err === 'object' && 'message' in err && typeof err.message === 'string') {
+      errorMessage = err.message;
+    }
+    
     return NextResponse.redirect(
       new URL(`/login?error=${encodeURIComponent(errorMessage)}`, request.url)
     );
