@@ -41,8 +41,8 @@ export async function GET(request: NextRequest) {
       
       // ハッシュフラグメントはサーバーサイドでは取得できないため、
       // クライアントサイドでの処理が必要
-      // 一旦サマリーページにリダイレクトし、そこでセッションを確認する
-      return NextResponse.redirect(new URL('/summary', request.url));
+      // 一旦保存一覧ページにリダイレクトし、そこでセッションを確認する
+      return NextResponse.redirect(new URL('/saved', request.url));
     }
 
     // App Routerではcookiesは使用可能
@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
     console.log('ユーザー情報確認成功:', user.id);
     
     // ログイン成功後のリダイレクト先
-    return NextResponse.redirect(new URL('/summary', request.url));
+    return NextResponse.redirect(new URL('/saved', request.url));
   } catch (err: unknown) {
     console.error('コールバック処理エラー:', err);
     
