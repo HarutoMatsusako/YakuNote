@@ -25,17 +25,17 @@ export default function AuthForm({ type }: AuthFormProps) {
           ? 'http://localhost:3000/api/auth/callback'
           : 'https://yaku-note.vercel.app/api/auth/callback';
 
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
-        },
-      });
-
+          const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+              redirectTo: 'https://yaku-note.vercel.app/api/auth/callback',
+              queryParams: {
+                access_type: 'offline',
+                prompt: 'consent',
+              },
+            },
+          });
+          
       console.log('Googleサインインレスポンス:', { data, error });
 
       if (error) throw error;
