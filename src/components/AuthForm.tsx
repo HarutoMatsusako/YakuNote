@@ -19,10 +19,16 @@ export default function AuthForm({ type }: AuthFormProps) {
 
       console.log('Googleサインイン処理を開始します...');
 
+      // ✅ 環境に応じてリダイレクト先を切り替える
+      const redirectTo =
+        process.env.NODE_ENV === 'development'
+          ? 'http://localhost:3000/api/auth/callback'
+          : 'https://yaku-note.vercel.app/api/auth/callback';
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/api/auth/callback`,
+          redirectTo,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -32,12 +38,8 @@ export default function AuthForm({ type }: AuthFormProps) {
 
       console.log('Googleサインインレスポンス:', { data, error });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      // リダイレクトはSupabaseが自動的に処理するため、
-      // ここに到達することはほとんどない
     } catch (err: unknown) {
       console.error('Googleサインインエラー:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
