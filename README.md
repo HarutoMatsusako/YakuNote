@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Yakunote（ヤクノート）
 
-## Getting Started
+📝 AI要約 × 保存 × 英語翻訳機能を備えた、記事要約Webアプリです。
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🚀 概要
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+URLを入力 → 本文抽出 → 要約 → 保存・翻訳までを一貫して行えるモダンなWebアプリです。  
+React / Next.js / FastAPI / Supabase / OpenAI API などを使用しています。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🔧 使用技術（スタック）
 
-## Learn More
+- **フロントエンド**: React / Next.js / TypeScript / Tailwind CSS
+- **バックエンド**: Python / FastAPI
+- **認証**: Supabase Auth（Google OAuth）
+- **DB**: Supabase（PostgreSQL）
+- **AI連携**: OpenAI API（GPT-3.5-turbo）
+- **インフラ**: Vercel / Supabase Hosting
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🎯 主な機能
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- ✅ URL入力で本文自動抽出（trafilatura）
+- ✅ 要約の自動生成（OpenAI連携）
+- ✅ 要約データの保存・一覧表示（Supabase DB）
+- ✅ Googleログインでユーザー管理
+- ✅ 英語 ⇔ 日本語の切り替え翻訳機能
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🖼️ 画面イメージ（任意）
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+（アプリのスクリーンショットをここに入れるとより◎）
+
+---
+
