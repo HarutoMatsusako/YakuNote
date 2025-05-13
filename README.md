@@ -10,6 +10,7 @@ https://yaku-note.vercel.app/
 
 URLを入力 → 本文抽出 → 要約 → 保存・翻訳までを一貫して行えるモダンなWebアプリです。  
 React / Next.js / FastAPI / Supabase / OpenAI API などを使用しています。
+※現在は個人利用のみを想定のため、Googleログイン機能は１ユーザーのみ認証可能にしております
 
 ---
 
