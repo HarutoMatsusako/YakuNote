@@ -37,23 +37,23 @@ React / Next.js / FastAPI / Supabase / OpenAI API などを使用しています
 
 ## 画面イメージ
 
-### 🔹 トップページ（URL入力）
-![トップ](https://raw.githubusercontent.com/HarutoMatsusako/YakuNote/main/images/top.png)
-
-### 🔹 要約開始画面
+### 🔹 トップページ
 ![トップ](./public/images/top.png)
 
+### 🔹 要約開始画面
+![要約開始](./public/images/Input.png)
+
 ### 🔹 要約結果表示
-![要約結果](./public/images/summary.png)
+![要約結果](./public/images/Summary.png)
 
 ### 🔹 翻訳結果表示
-![要約結果](./public/images/summary.png)
+![要約結果](./public/images/Translate2.png)
 
 ### 🔹 保存一覧ページ
-![保存一覧](./public/images/list.png)
+![保存一覧](./public/images/List.png)
 
 ### 🔹 保存詳細ページ
-![保存一覧](./public/images/list.png)
+![保存一覧](./public/images/Detail.png)
 
 
 ---
