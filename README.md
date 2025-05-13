@@ -38,7 +38,7 @@ React / Next.js / FastAPI / Supabase / OpenAI API などを使用しています
 ## 画面イメージ
 
 ### 🔹 トップページ（URL入力）
-![トップ]([./public/images/top.png](https://raw.githubusercontent.com/HarutoMatsusako/YakuNote/main/images/top.png))
+![トップ](https://raw.githubusercontent.com/HarutoMatsusako/YakuNote/main/images/top.png)
 
 ### 🔹 要約開始画面
 ![トップ](./public/images/top.png)
