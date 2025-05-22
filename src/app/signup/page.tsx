@@ -16,8 +16,6 @@ function SignupContent() {
     const errorDescription = searchParams.get('error_description');
     
     if (errorParam) {
-      console.log('サインアップエラー:', { errorParam, errorDescription });
-      
       // エラーメッセージを設定
       if (errorParam === 'access_denied') {
         setError('Googleアカウントへのアクセスが拒否されました。再度お試しください。');

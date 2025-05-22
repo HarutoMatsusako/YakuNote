@@ -5,13 +5,10 @@ import type { Database } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {
-    console.log('サインアップAPIルートが呼び出されました');
-    
     // リクエストボディを取得
     let body;
     try {
       body = await request.json();
-      console.log('受信したリクエストボディ:', body);
     } catch (e) {
       console.error('JSONパースエラー:', e);
       return NextResponse.json({ 
@@ -30,8 +27,6 @@ export async function POST(request: Request) {
     // Supabase認証クライアントの作成
     const cookieStore = cookies();
     const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore });
-    
-    console.log('Supabase認証処理を開始:', { email });
     
     // サインアップ処理
     const { data, error } = await supabase.auth.signUp({
@@ -53,8 +48,6 @@ export async function POST(request: Request) {
         error: 'ユーザー情報の取得に失敗しました' 
       }, { status: 400 });
     }
-    
-    console.log('サインアップ成功:', { user: data.user.id });
     
     // メール確認が必要な場合は、その旨をクライアントに通知
     if (data.user.identities && data.user.identities.length === 0) {

@@ -27,7 +27,7 @@ export async function OPTIONS(req: NextRequest) {
 // OpenAIクライアントの初期化（実行時のみ）
 let openaiClient: OpenAI | null = null;
 
-// 環境変数のデバッグ強化
+// 環境変数から適切なAPIキーを取得
 const getOpenAIApiKey = () => {
   // 可能性のある環境変数名をすべて試す
   const possibleKeys = [
@@ -37,23 +37,12 @@ const getOpenAIApiKey = () => {
     'NEXT_PUBLIC_OPENAI_KEY'
   ];
   
-  console.log('Translate API: 環境変数チェック:');
   for (const key of possibleKeys) {
     const value = process.env[key];
     if (value) {
-      console.log(`Translate API: - ${key}: 存在します (長さ: ${value.length}文字)`);
       return value;
-    } else {
-      console.log(`Translate API: - ${key}: 存在しません`);
     }
   }
-  
-  // すべての環境変数を出力（デバッグ用）
-  console.log('Translate API: すべての環境変数キー:');
-  Object.keys(process.env).forEach(key => {
-    // セキュリティのため、キー名のみを出力
-    console.log(`Translate API: - ${key}`);
-  });
   
   return null;
 };
@@ -66,8 +55,6 @@ const getOpenAIClient = () => {
       console.error('Translate API: OpenAIクライアント初期化エラー: APIキーが設定されていません');
       throw new Error('OpenAI API key is not set');
     }
-    
-    console.log('Translate API: OpenAIクライアント初期化: APIキー確認OK');
     
     // タイムアウトとリトライ設定を追加
     openaiClient = new OpenAI({
@@ -90,8 +77,6 @@ const translateWithFetch = async (text: string, targetLang: string) => {
     ? "以下の文章を日本語に翻訳してください。" 
     : "Please translate the following text into English.";
   
-  console.log('Translate API: 翻訳リクエスト開始');
-  
   // 直接fetchでリクエスト
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -108,13 +93,6 @@ const translateWithFetch = async (text: string, targetLang: string) => {
     })
   });
   
-  // レスポンスの詳細情報をログに出力
-  console.log('Translate API: OpenAI APIレスポンス状態:', {
-    status: response.status,
-    statusText: response.statusText,
-    ok: response.ok
-  });
-  
   if (!response.ok) {
     const errorText = await response.text();
     console.error('Translate API: APIエラー', {
@@ -126,23 +104,18 @@ const translateWithFetch = async (text: string, targetLang: string) => {
   }
   
   const data = await response.json();
-  console.log('Translate API: 翻訳完了');
   return data.choices[0].message.content;
 };
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('Translate API: リクエスト受信');
-    
-    // リクエストボディをデバッグ
+    // リクエストボディを取得
     const requestText = await request.text();
-    console.log('Translate API: リクエスト本文', requestText);
     
     // JSONとして解析
     let body;
     try {
       body = JSON.parse(requestText);
-      console.log('Translate API: JSONパース成功', body);
     } catch (parseError) {
       console.error('Translate API: JSONパースエラー', parseError);
       return NextResponse.json(
@@ -190,10 +163,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('Translate API: 翻訳開始', {
-      textLength: text.length,
-      targetLang: targetLang
-    });
 
     // 言語に応じたシステムプロンプトを設定
     const systemPrompt = targetLang === "ja" 
@@ -204,13 +173,11 @@ export async function POST(request: NextRequest) {
     
     try {
       // 直接fetchを使用した実装を試す
-      console.log('Translate API: 直接fetchを使用した実装を試行');
       translatedText = await translateWithFetch(text, targetLang);
     } catch (fetchError) {
       console.error('Translate API: fetch実装でエラー発生、OpenAIクライアントにフォールバック', fetchError);
       
       // OpenAIクライアントを使用した実装にフォールバック
-      console.log('Translate API: OpenAIクライアントを使用した実装にフォールバック');
       
       // OpenAIクライアントを取得
       const openai = getOpenAIClient();
@@ -227,10 +194,6 @@ export async function POST(request: NextRequest) {
       translatedText = response.choices[0].message.content;
     }
 
-    console.log('Translate API: 翻訳完了', {
-      translatedTextLength: translatedText.length,
-      translatedTextPreview: translatedText.substring(0, 100)
-    });
 
     return NextResponse.json(
       { translatedText },
