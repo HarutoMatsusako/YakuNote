@@ -97,7 +97,7 @@ def summarize(input: TextInput):
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "以下の文章を要約してください。"},
+                {"role": "system", "content": "以下の文章を要約してください。重要なポイントを漏らさず、詳細に要約してください。結果は長めでもいいです。"},
                 {"role": "user", "content": truncated_text}
             ]
         )
@@ -208,7 +208,7 @@ def summarize_english(input: TextInput):
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "Please summarize the following text in English."},
+                {"role": "system", "content": "Please summarize the following text in English. Include all important points and provide a detailed summary. It's okay if the result is lengthy."},
                 {"role": "user", "content": truncated_text}
             ]
         )
@@ -250,7 +250,7 @@ def get_summary_english(summary_id: str):
         openai_response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "Please summarize the following text in English."},
+                {"role": "system", "content": "Please summarize the following text in English. Include all important points and provide a detailed summary. It's okay if the result is lengthy."},
                 {"role": "user", "content": truncated_text}
             ]
         )
@@ -281,4 +281,3 @@ def translate_text(input: TranslateInput):
         return {"translatedText": translated}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"翻訳中にエラーが発生しました: {str(e)}")
-

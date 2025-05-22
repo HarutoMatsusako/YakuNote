@@ -197,11 +197,11 @@ export async function POST(request: NextRequest) {
             body: JSON.stringify({
               model: "gpt-3.5-turbo",
               messages: [
-                {
-                  role: "system",
-                  content:
-                    "以下の文章を要約してください。簡潔にまとめてください。",
-                },
+              {
+                role: "system",
+                content:
+                  "以下の文章を要約してください。重要なポイントを漏らさず、詳細に要約してください。結果は長めでもいいです。",
+              },
                 { role: "user", content: truncated_text },
               ],
               max_tokens: 1000,
