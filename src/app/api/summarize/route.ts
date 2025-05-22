@@ -150,12 +150,12 @@ export async function POST(request: NextRequest) {
               {
                 role: "system",
                 content:
-                  "以下の文章を要約してください。簡潔にまとめてください。",
+                  "以下の文章を内容を維持したまま、できるだけ詳しくわかりやすく要約してください。省略しすぎないようにしてください。",
               },
               { role: "user", content: truncated_text },
             ],
             max_tokens: 1000,
-            temperature: 0.7,
+            temperature: 0.5,
           }),
         }
       );
